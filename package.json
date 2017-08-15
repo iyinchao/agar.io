@@ -1,0 +1,25 @@
+{
+  "name": "agario",
+  "version": "0.0.1",
+  "description": "A demo project for training, based on the idea of Agar.io",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/webtraining/agario.git"
+  },
+  "keywords": [
+    "test",
+    "demo",
+    "trainig",
+    "agar"
+  ],
+  "author": "Charlieyin<charlieyin@tencent.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/webtraining/agario/issues"
+  },
+  "homepage": "https://gitlab.com/webtraining/agario#README"
+}
