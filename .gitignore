@@ -8,5 +8,6 @@ npm-debug.log*
 # Build outputs
 dist/
 
-# Persional Folders
+# Persional Folders & auto generated
 .charlieyin/
+.vscode/
