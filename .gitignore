@@ -5,5 +5,8 @@ node_modules/
 # Debug logs
 npm-debug.log*
 
+# Build outputs
+dist/
+
 # Persional Folders
 .charlieyin/
