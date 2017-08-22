@@ -7,8 +7,48 @@ module.exports = {
   context: utils.dir(),
   output: {
     path: utils.dir(config.dist),
-    publicPath: utils.dir(config.assetsPath)
+    publicPath: config.assetsPublicPath
+  },
+  resolve: {
+    extensions: ['.js', '.json'],
+    alias: {
+      '@': utils.dir('src')
+    }
+  },
+  module: {
+    rules: [
+      {
+        test: /\.js$/,
+        loader: 'babel-loader',
+        include: [utils.dir('src/client')]
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
+        loader: 'url-loader',
+        include: [utils.dir('src/client')],
+        options: {
+          limit: 10000,
+          name: path.join(config.dist, config.assetsSubDirectory, 'img/[name].[hash:7].[ext]')
+        }
+      },
+      {
+        test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
+        loader: 'url-loader',
+        include: [utils.dir('src/client')],
+        options: {
+          limit: 10000,
+          name: path.join(config.dist, config.assetsSubDirectory, 'media/[name].[hash:7].[ext]')
+        }
+      },
+      {
+        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        loader: 'url-loader',
+        include: [utils.dir('src/client')],
+        options: {
+          limit: 10000,
+          name: path.join(config.dist, config.assetsSubDirectory, 'fonts/[name].[hash:7].[ext]')
+        }
+      }
+    ]
   }
 }
-
-console.log(module.exports)

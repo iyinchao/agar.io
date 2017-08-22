@@ -7,7 +7,8 @@ const utils = require('../scripts/utils')
 
 const configCommon = {
   dist: 'dist',
-  assetsPath: 'dist/assets'
+  assetsSubDirectory: 'static',
+  assetsPublicPath: '/'
 }
 
 const config = {
