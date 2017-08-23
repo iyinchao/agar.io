@@ -2,6 +2,8 @@ const path = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
+const ProgressBarPlugin = require('progress-bar-webpack-plugin')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
@@ -22,11 +24,13 @@ module.exports = merge(webpackBaseConf, {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
+    new ProgressBarPlugin(),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: utils.dir('src/client/html/index.html'),
       inject: true
     }),
+    new FriendlyErrorsPlugin()
   ]
 })
 

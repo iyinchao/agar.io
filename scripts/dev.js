@@ -42,10 +42,7 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     quiet: true
   })
 
-  const hotMiddleware = require('webpack-hot-middleware')(compiler, {
-    log: false,
-    heartbeat: 2000
-  })
+  const hotMiddleware = require('webpack-hot-middleware')(compiler, {})
 
   compiler.plugin('compilation', function (compilation) {
     compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
@@ -57,9 +54,11 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
   app.use(devMiddleware)
   app.use(hotMiddleware)
 
+  app.use(utils.dir(`${config.dist}/${config.client.dir}/${config.assetsSubDirectory}`), express.static('./static'))
+
   devMiddleware.waitUntilValid(() => {
     utils.logger('success', `Build is now valid.`)
-    utils.logger('info', `Listening at port: ${config.devServer.port} ...`)
+    utils.logger('info', `Listening at port ${config.devServer.port}...`)
     readyPromiseResolve()
   })
 

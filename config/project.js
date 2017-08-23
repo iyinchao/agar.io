@@ -8,7 +8,10 @@ const utils = require('../scripts/utils')
 const configCommon = {
   dist: 'dist',
   assetsSubDirectory: 'static',
-  assetsPublicPath: '/'
+  assetsPublicPath: '/',
+  client: {
+    dir: 'client'
+  }
 }
 
 const config = {

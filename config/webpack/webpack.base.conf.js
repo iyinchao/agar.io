@@ -9,8 +9,8 @@ module.exports = {
     app: utils.dir('src/client/js/app.js')
   },
   output: {
-    filename: 'js/[name].[hash:7].js',
-    path: utils.dir(config.dist),
+    filename: `${config.assetsSubDirectory}/js/[name].[hash:7].js`,
+    path: utils.dir(`${config.dist}/${config.client.dir}`),
     publicPath: config.assetsPublicPath
   },
   resolve: {
@@ -33,7 +33,9 @@ module.exports = {
         include: [utils.dir('src/client/assets/img')],
         options: {
           limit: 10000,
-          name: path.join(config.dist, config.assetsSubDirectory, 'img/[name].[hash:7].[ext]')
+          name: path.join(`${config.dist}
+          /${config.client.dir}
+          /${config.assetsSubDirectory}/img/[name].[hash:7].[ext]`)
         }
       },
       {
@@ -42,7 +44,9 @@ module.exports = {
         include: [utils.dir('src/client/assets/audio')],
         options: {
           limit: 10000,
-          name: path.join(config.dist, config.assetsSubDirectory, 'media/[name].[hash:7].[ext]')
+          name: path.join(`${config.dist}
+          /${config.client.dir}
+          /${config.assetsSubDirectory}/media/[name].[hash:7].[ext]`)
         }
       },
       {
@@ -51,7 +55,9 @@ module.exports = {
         include: [utils.dir('src/client/assets/font')],
         options: {
           limit: 10000,
-          name: path.join(config.dist, config.assetsSubDirectory, 'fonts/[name].[hash:7].[ext]')
+          name: path.join(`${config.dist}
+          /${config.client.dir}
+          /${config.assetsSubDirectory}/font/[name].[hash:7].[ext]`)
         }
       },
       {

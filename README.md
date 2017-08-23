@@ -1,6 +1,4 @@
-# HTML5_Gaming
-
-agar.io clone
+# Agar.io Clone
 
 ## Installation
 #### Downloading the Dependencies
