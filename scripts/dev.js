@@ -24,11 +24,10 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     utils.logger('error', 'Failed to create "dist" folder. Stop.', ret.stderr)
     return
   } else {
-    utils.logger('success', 'Clear "dist" folder successful.')
+    utils.logger('info', 'Cleared "dist" folder.')
   }
 
   // Start webpack and static server
-
   let readyPromiseResolve
   const readyPromise = new Promise(resolve => {
     readyPromiseResolve = resolve
@@ -42,7 +41,9 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     quiet: true
   })
 
-  const hotMiddleware = require('webpack-hot-middleware')(compiler, {})
+  const hotMiddleware = require('webpack-hot-middleware')(compiler, {
+    log: false
+  })
 
   compiler.plugin('compilation', function (compilation) {
     compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
@@ -58,7 +59,7 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
   devMiddleware.waitUntilValid(() => {
     utils.logger('success', `Build is now valid.`)
-    utils.logger('info', `Listening at port ${config.devServer.port}...`)
+    utils.logger('info', `DevServer is running at http://localhost:${config.devServer.port}, happy coding!`)
     readyPromiseResolve()
   })
 
