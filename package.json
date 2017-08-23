@@ -23,6 +23,8 @@
   },
   "homepage": "https://gitlab.com/webtraining/agario#README",
   "dependencies": {
+    "express": "^4.15.4",
+    "express-session": "^1.15.5",
     "phaser": "2.6.2"
   },
   "devDependencies": {
