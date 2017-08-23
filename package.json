@@ -35,6 +35,7 @@
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
     "html-webpack-plugin": "^2.30.1",
+    "mongodb": "^2.2.31",
     "webpack": "^3.5.5",
     "webpack-merge": "^4.1.0"
   }
