@@ -23,10 +23,10 @@ exports.logger = (level, message, extraInfo = null) => {
         if (extraInfo.stack) {
           msg += '\nStack trace:\n'
           msg += chalk.red(extraInfo.stack) + '\n'
+        } else {
+          msg += '\nError info:\n'
+          msg += String(extraInfo) + '\n'
         }
-      } else {
-        msg += '\nError info:\n'
-        msg += String(extraInfo) + '\n'
       }
       break
     case 'warn':

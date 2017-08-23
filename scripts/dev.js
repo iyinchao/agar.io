@@ -25,12 +25,12 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     utils.logger('error', 'Failed to create "dist" folder. Stop.', ret.stderr)
     return
   } else {
-    utils.logger('info', 'Cleared "dist" folder.')
+    utils.logger('info', `Cleared build directory: ${utils.dir(config.dist)}`)
   }
 
   // Start webpack and static server
   let readyPromiseResolve
-  const readyPromise = new Promise(resolve => {
+  const readyPromise = new Promise((resolve, reject) => {
     readyPromiseResolve = resolve
   })
 
@@ -60,8 +60,13 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
   const url = `http://localhost:${config.devServer.port}`
 
-  devMiddleware.waitUntilValid(() => {
-    utils.logger('success', `Build is now valid.`)
+  devMiddleware.waitUntilValid((e) => {
+    const errors = e.compilation.errors
+    if (errors && errors.length) {
+      utils.logger('error', `Build FAILED.`)
+      process.exit()
+    }
+    utils.logger('success', `Build SUCCESSFUL.`)
     utils.logger('info', `DevServer is running at ${url}, happy coding!`)
     opn(url)
     readyPromiseResolve()

@@ -2,9 +2,9 @@
   "name": "agario",
   "version": "0.0.1",
   "description": "A demo project for training, based on the idea of Agar.io",
-  "main": "index.js",
+  "private": true,
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "cross-env NODE_ENV=development node ./scripts/dev.js"
   },
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
   },
   "homepage": "https://gitlab.com/webtraining/agario#README",
   "dependencies": {
+    "cross-env": "^5.0.5",
     "express": "^4.15.4",
     "express-session": "^1.15.5",
     "log4js": "^2.3.3",
