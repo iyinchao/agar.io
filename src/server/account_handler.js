@@ -26,22 +26,23 @@ account_handler.init = function (callback) {
     account_handler.agario_db = db;
     db.on('close', function () {
       delete(account_handler.agario_db);
-    })
+    });
     callback(err, db);
   });
 };
 
 account_handler.create = function (id, passwd, name, callback) {
-  account_handler.init(function (error, db) {
-    var player_set = db.collection("player");
-    var data = new player_data(id, name, passwd);
+    account_handler.init(function (error, db) {
+        var player_set = db.collection("player");
+        var data = new player_data(id, name, passwd);
 
-    if (typeof (id) != "string" || typeof (passwd) != "string" ||
-      typeof (name) != "string") {
-      callback(-1, null);
-    }
-    console.log("Add new user: " + id + ":" + name);
-    player_set.insert(data, callback);
+        if (typeof (id) != "string" || typeof (passwd) != "string" ||
+                typeof (name) != "string") {
+            callback(-1, null);
+            return;
+        }
+        console.log("Add new user: " + id + ":" + name);
+        player_set.insert(data, callback);
   });
 };
 
