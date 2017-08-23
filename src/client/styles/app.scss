@@ -1,4 +1,8 @@
 $color: cyan;
 #app {
   background: $color;
+  display: flex;
+  div {
+    color: $color;
+  }
 }

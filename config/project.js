@@ -20,8 +20,7 @@ const config = {
   }
 }
 
-module.exports = Object.assign(
-  {},
+module.exports = Object.assign({},
   configCommon,
   config[utils.env()] ? config[utils.env()] : config['development']
 )

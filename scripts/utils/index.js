@@ -1,7 +1,7 @@
 const path = require('path')
 
 exports.dir = (...dirs) => {
-  return path.join(__dirname, '..', ...dirs)
+  return path.join(__dirname, '../../', ...dirs)
 }
 
 exports.env = () => {
