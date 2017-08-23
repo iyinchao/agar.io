@@ -13,15 +13,16 @@ const configCommon = {
 
 const config = {
   development: {
-
+    devServer: {
+      port: 3000
+    }
   },
   production: {
 
   }
 }
 
-module.exports = Object.assign(
-  {},
+module.exports = Object.assign({},
   configCommon,
   config[utils.env()] ? config[utils.env()] : config['development']
 )
