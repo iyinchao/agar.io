@@ -13,7 +13,16 @@ var logger_style = {
     level: 'auto',
 };
 
+// setup global logger
 server.use(log4js.connectLogger(logger, logger_style));
+
+// initialize session
+server.use(session({
+    name: 'skey',
+    secret: 'agario',
+    resave: false,
+    saveUninitialized: false,
+}));
 
 logger.info("Create Http Server");
 
@@ -41,11 +50,13 @@ function on_register(req, rsp)
     var param = req.query;
     if (typeof(param) == "undefined") {
         rsp.json(new ret_data(1, "undefined params"));
+        logger.info("undefine parameters");
         return;
     }
     if (check_string(param.id) || check_string(param.passwd) ||
         check_string(param.name)) {
         rsp.json(new ret_data(2, "invalid param"));
+        logger.info("invalid parameters");
         return;
     }
     var reg_callback = function(err, db) {
@@ -54,18 +65,48 @@ function on_register(req, rsp)
         } else {
             rsp.json(new ret_data(-1, err));
         }
+        logger.info("create new account, ret: " + !!err + "param:" + param);
     };
     account_handler.create(param.id, param.passwd, param.name, reg_callback);
 }
 
 function on_login(req, rsp)
 {
-
+    var param = req.query;
+    if (req.session._id) {
+        logger.info("check account, login by session");
+        return rsp.json(new ret_data(0, "already login"));
+    }
+    if (typeof(param) == "undefined") {
+        rsp.json(new ret_data(1, "undefined params"));
+        logger.info("undefine parameters");
+        return;
+    }
+    if (check_string(param.id) || check_string(param.passwd)) {
+        rsp.json(new ret_data(2, "invalid param"));
+        logger.info("invalid parameters");
+        return;
+    }
+    var login_callback = function(err, db) {
+        if (!err) {
+            req.session._id = param.id;
+            rsp.json(new ret_data(0, "loin success"));
+        } else {
+            rsp.json(new ret_data(-1, err));
+        }
+        logger.info("check account, ret: "+ !!err + " param:" + param);
+    };
+    account_handler.find(param.id, param.passwd, login_callback);
 }
 
 function on_exit(req, rsp)
 {
-
+    var param = req.query;
+    if (req.session._id) {
+        logger.info("login out");
+        delete(req.session._id);
+    }
+    return rsp.json(new ret_data(0, ""));
 }
 
 server.all("/*", checker);
