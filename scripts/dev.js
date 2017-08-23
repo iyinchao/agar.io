@@ -1,6 +1,7 @@
 process.env.NODE_ENV = '"development"' // Force env to be 'development'
 
 const path = require('path')
+const opn = require('opn')
 const shelljs = require('shelljs')
 const express = require('express')
 const webpack = require('webpack')
@@ -57,9 +58,12 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
   app.use(utils.dir(`${config.dist}/${config.client.dir}/${config.assetsSubDirectory}`), express.static('./static'))
 
+  const url = `http://localhost:${config.devServer.port}`
+
   devMiddleware.waitUntilValid(() => {
     utils.logger('success', `Build is now valid.`)
-    utils.logger('info', `DevServer is running at http://localhost:${config.devServer.port}, happy coding!`)
+    utils.logger('info', `DevServer is running at ${url}, happy coding!`)
+    opn(url)
     readyPromiseResolve()
   })
 
