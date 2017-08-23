@@ -13,7 +13,9 @@ const configCommon = {
 
 const config = {
   development: {
-
+    devServer: {
+      port: 3000
+    }
   },
   production: {
 

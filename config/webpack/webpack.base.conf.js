@@ -16,7 +16,8 @@ module.exports = {
   resolve: {
     extensions: ['.js', '.json'],
     alias: {
-      '@': utils.dir('src')
+      '@': utils.dir('src/client'),
+      '~': utils.dir('src')
     }
   },
   module: {
