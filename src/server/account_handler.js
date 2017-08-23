@@ -41,18 +41,16 @@ account_handler.create = function (id, passwd, name, callback) {
             callback(-1, null);
             return;
         }
-        console.log("Add new user: " + id + ":" + name);
         player_set.insert(data, callback);
   });
 };
 
-account_handler.find = function (id, callback) {
-  account_handler.init(function (error, db) {
-    var player_set = db.collection("player");
-    player_set.find({
-      "_id": id
-    }).toArray(callback);
-  });
+account_handler.find = function (id, passwd, callback) {
+    account_handler.init(function (error, db) {
+        var player_set = db.collection("player");
+        var query = new player_data(id, null, passwd);
+        player_set.find(query).toArray(callback);
+    });
 };
 
 account_handler.close = function () {

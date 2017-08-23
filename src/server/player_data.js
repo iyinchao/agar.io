@@ -1,11 +1,11 @@
-function player_data(id, nick_name, pwd) {
+function player_data(id, nick_name, pwd, mass, game, kill) {
   return {
     _id: id,
     name: nick_name,
     passwd: pwd,
-    weight: 0,
-    nr_game: 0,
-    nr_kill: 0,
+    weight: mass,
+    nr_game: game,
+    nr_kill: kill,
   };
 }
 
