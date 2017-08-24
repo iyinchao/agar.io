@@ -1,17 +1,24 @@
 # Agar.io Clone
 
-## Installation
-#### Downloading the Dependencies
+## Usage
+### Downloading the Dependencies
 After cloning the source, you need to run the following command.
 
 ```
-npm install
+npm i
 ```
 
-#### Running the Server
+### Start dev-server
+Just run
+```bash
+npm run dev
 ```
+Browser will auto open after built.
+
+### Running the Server
+```bash
 node server.js
 ```
 
-#### Playing
+### Playing
 `http://localhost:3000`.
