@@ -6,6 +6,9 @@ import Phaser from 'phaser'
 /* eslint-enable no-unused-vars */
 import gameConfig from '~/config/game'
 
+//
+import Overlay from '@/js/overlay'
+
 class Game extends Phaser.Game {
   constructor (container, states = null) {
     super(
@@ -31,14 +34,20 @@ const game = new Game(document.querySelector('#canvas-wrapper'), {
   create () {
     // console.log(this.game.parent.clientWidth);
     this.scale.setGameSize(this.game.parent.clientWidth, this.game.parent.clientHeight)
+    this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT
     this.game.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
     this.game.add.tileSprite(
       0, 0,
       gameConfig.world.width, gameConfig.world.height,
       'background')
-    // this.scale.scaleMode = Phaser.ScaleManager.EXACT_FIT
+    //
     // console.log(this.game.width, this.game.height)
     // var background = this.add.tileSprite(-width, -height,
     //   this.game.world.width, this.game.world.height, 'background');
+  },
+  render () {
+    this.game.debug.inputInfo(32, 32)
   }
 })
+
+const overlay = new Overlay()

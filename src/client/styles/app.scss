@@ -1,4 +1,6 @@
-$color: cyan;
+@import 'variables';
+@import 'overlay';
+
 body {
   // Do some reset here.
   margin: 0;
@@ -7,6 +9,27 @@ body {
   font-size: 14px;
   //
   overflow: hidden;
+}
+
+button.button {
+  border: none;
+  margin: 0;
+  background-color: grey;
+  display: block;
+  box-shadow: $boxShadow0;
+  border-radius: 3px;
+  padding: 8px 15px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: all 200ms;
+  &:active {
+    box-shadow: $boxShadow1;
+  }
+  &.primary {
+    background-color: $colorPrimary;
+    color: lighten($colorPrimary, 80%);
+  }
 }
 
 #canvas-wrapper {

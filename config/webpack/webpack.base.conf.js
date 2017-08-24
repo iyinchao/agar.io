@@ -34,6 +34,11 @@ module.exports = {
         loader: 'babel-loader',
         include: [utils.dir('src/client'), utils.dir('config')],
       },
+      {
+        test: /\.html$/,
+        loader: 'html-loader',
+        include: [utils.dir('src/client/html')]
+      },
       // For phaser 2, these components must be avaliable in global scope.
       // See: https://github.com/photonstorm/phaser/issues/2762
       { test: /pixi\.js/, loader: 'expose-loader', include: [phaserDir], options: 'PIXI' },
@@ -42,7 +47,7 @@ module.exports = {
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
-        // include: [utils.dir('src/client/assets/font')],
+        include: [utils.dir('src/client/assets/img')],
         options: {
           limit: 10000,
           name: path.join(`${config.dist}
@@ -53,7 +58,7 @@ module.exports = {
       {
         test: /\.(mp4|webm|ogg|mp3|wav|flac|aac)(\?.*)?$/,
         loader: 'url-loader',
-        // include: [utils.dir('src/client/assets/audio')],
+        include: [utils.dir('src/client/assets/audio')],
         options: {
           limit: 10000,
           name: path.join(`${config.dist}
@@ -64,7 +69,7 @@ module.exports = {
       {
         test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
         loader: 'url-loader',
-        // include: [utils.dir('src/client/assets/font')],
+        include: [utils.dir('src/client/assets/font')],
         options: {
           limit: 10000,
           name: path.join(`${config.dist}
