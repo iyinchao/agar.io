@@ -1,6 +1,7 @@
 process.env.NODE_ENV = '"development"' // Force env to be 'development'
 
 const path = require('path')
+const opn = require('opn')
 const shelljs = require('shelljs')
 const express = require('express')
 const webpack = require('webpack')
@@ -24,13 +25,12 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     utils.logger('error', 'Failed to create "dist" folder. Stop.', ret.stderr)
     return
   } else {
-    utils.logger('success', 'Clear "dist" folder successful.')
+    utils.logger('info', `Cleared build directory: ${utils.dir(config.dist)}`)
   }
 
   // Start webpack and static server
-
   let readyPromiseResolve
-  const readyPromise = new Promise(resolve => {
+  const readyPromise = new Promise((resolve, reject) => {
     readyPromiseResolve = resolve
   })
 
@@ -42,7 +42,9 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
     quiet: true
   })
 
-  const hotMiddleware = require('webpack-hot-middleware')(compiler, {})
+  const hotMiddleware = require('webpack-hot-middleware')(compiler, {
+    log: false
+  })
 
   compiler.plugin('compilation', function (compilation) {
     compilation.plugin('html-webpack-plugin-after-emit', function (data, cb) {
@@ -56,9 +58,17 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
   app.use(utils.dir(`${config.dist}/${config.client.dir}/${config.assetsSubDirectory}`), express.static('./static'))
 
-  devMiddleware.waitUntilValid(() => {
-    utils.logger('success', `Build is now valid.`)
-    utils.logger('info', `Listening at port ${config.devServer.port}...`)
+  const url = `http://localhost:${config.devServer.port}`
+
+  devMiddleware.waitUntilValid((e) => {
+    const errors = e.compilation.errors
+    if (errors && errors.length) {
+      utils.logger('error', `Build FAILED.`)
+      process.exit()
+    }
+    utils.logger('success', `Build SUCCESSFUL.`)
+    utils.logger('info', `DevServer is running at ${url}, happy coding!`)
+    opn(url)
     readyPromiseResolve()
   })
 

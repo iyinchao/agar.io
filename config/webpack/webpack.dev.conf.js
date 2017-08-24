@@ -24,7 +24,9 @@ module.exports = merge(webpackBaseConf, {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new webpack.NoEmitOnErrorsPlugin(),
-    new ProgressBarPlugin(),
+    new ProgressBarPlugin({
+      summary: false
+    }),
     new HtmlWebpackPlugin({
       filename: 'index.html',
       template: utils.dir('src/client/html/index.html'),
