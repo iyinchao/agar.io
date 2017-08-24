@@ -39,16 +39,21 @@ function on_top_n(req, rsp)
         logger.info("undefined parameters");
         return;
     }
+    var category = param.category;
     var cmp_callback = function(err, db) {
         if (err) {
             return rsp.json(new ret_data(-1, "Internal error"));
         } else {
-            return rsp.json(db);
+            var result = [];
+            for (var i = 0; i < db.length; ++i) {
+                result.push({name: db[i].name});
+                result[i][category] = db[i][category];
+            }
+            return rsp.json(result);
         }
     };
-    if (param.category == "nr_game" || param.category == "nr_kill" ||
-        param.category == "weight") {
-        return account_handler.top(param.category, 10, cmp_callback);
+    if (category == "nr_game" || category == "nr_kill" || category == "weight") {
+        return account_handler.top(category, 10, cmp_callback);
     } else {
         return rsp.json(new ret_data(-1, "Invalid param"));
     }
