@@ -3,6 +3,11 @@ const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const config = require(path.join(baseURL, 'config/project'))
 
+const phaserDir = utils.dir('node_modules/phaser')
+// phaser: path.join(PHASER_DIR, 'build/custom/phaser-split.js'),
+// pixi: path.join(PHASER_DIR, 'build/custom/pixi.js'),
+// p2: path.join(PHASER_DIR, 'build/custom/p2.js'),
+
 module.exports = {
   context: utils.dir(),
   entry: {
@@ -17,7 +22,10 @@ module.exports = {
     extensions: ['.js', '.json'],
     alias: {
       '@': utils.dir('src/client'),
-      '~': utils.dir('src')
+      '~': utils.dir('src'),
+      phaser: path.join(phaserDir, 'build/custom/phaser-split.js'),
+      pixi: path.join(phaserDir, 'build/custom/pixi.js'),
+      p2: path.join(phaserDir, 'build/custom/p2.js'),
     }
   },
   module: {
@@ -27,6 +35,9 @@ module.exports = {
         loader: 'babel-loader',
         include: [utils.dir('src/client')],
       },
+      { test: /pixi\.js/, loader: 'expose-loader', options: 'PIXI' },
+      { test: /phaser-split\.js$/, loader: 'expose-loader', options: 'Phaser' },
+      { test: /p2\.js/, loader: 'expose-loader', options: 'p2' },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: 'url-loader',
