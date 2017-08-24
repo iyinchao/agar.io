@@ -53,9 +53,18 @@ account_handler.find = function (id, passwd, callback) {
     });
 };
 
+account_handler.top = function (key, count, callback) {
+    account_handler.init(function(error, db) {
+        var player_set = db.collection("player");
+        var sort_key = {};
+        sort_key[key] = -1;
+        player_set.find().sort(sort_key).limit(count).toArray(callback);
+    });
+};
+
 account_handler.close = function () {
-  if (account_handler.agario_db) {
-    account_handler.agario_db.close();
-  }
+    if (account_handler.agario_db) {
+        account_handler.agario_db.close();
+    }
 };
 module.exports = account_handler;

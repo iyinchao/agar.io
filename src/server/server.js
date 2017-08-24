@@ -31,6 +31,29 @@ function checker(req, rsp, next)
     next();
 }
 
+function on_top_n(req, rsp)
+{
+    var param = req.query;
+    if (typeof(param) == "undefined") {
+        rsp.json(new ret_data(1, "undefined"));
+        logger.info("undefined parameters");
+        return;
+    }
+    var cmp_callback = function(err, db) {
+        if (err) {
+            return rsp.json(new ret_data(-1, "Internal error"));
+        } else {
+            return rsp.json(db);
+        }
+    };
+    if (param.category == "nr_game" || param.category == "nr_kill" ||
+        param.category == "weight") {
+        return account_handler.top(param.category, 10, cmp_callback);
+    } else {
+        return rsp.json(new ret_data(-1, "Invalid param"));
+    }
+}
+
 function check_string(str)
 {
     if (typeof(str) == "undefined" || !str)
@@ -113,3 +136,4 @@ server.all("/*", checker);
 server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
+server.get("/top", on_top_n);
