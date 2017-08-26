@@ -2,6 +2,8 @@ const logger = (level, message, extraData) => {
   console.log(level, message)
 }
 
-export {
+const utils = {
   logger
 }
+
+export default utils

@@ -7,8 +7,10 @@ body {
   padding: 0;
   font-family: Helvetica, 'Microsoft Yahei', '微软雅黑', 'Hiragino Sans GB', 'PingFang SC', Arial, sans-serif;
   font-size: 14px;
-  //
   overflow: hidden;
+  * {
+    box-sizing: border-box;
+  }
 }
 
 button.button {
@@ -17,7 +19,7 @@ button.button {
   background-color: grey;
   display: block;
   box-shadow: $boxShadow0;
-  border-radius: 3px;
+  border-radius: $borderRadiusS;
   padding: 8px 15px;
   font-size: 14px;
   outline: none;
@@ -29,6 +31,22 @@ button.button {
   &.primary {
     background-color: $colorPrimary;
     color: lighten($colorPrimary, 80%);
+    &:active {
+      background-color: darken($colorPrimary, 10%);
+    }
+  }
+}
+
+.input-text {
+  border-radius: $borderRadiusS;
+  border: none;
+  box-shadow: $boxShadow0;
+  padding: 10px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 200ms;
+  &:focus {
+    box-shadow: $boxShadow1, 0 0 0 2px rgba($colorPrimary, 0.47);
   }
 }
 
