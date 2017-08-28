@@ -11,6 +11,9 @@ const configCommon = {
   assetsPublicPath: '/',
   client: {
     dir: 'client'
+  },
+  server: {
+
   }
 }
 
@@ -18,10 +21,15 @@ const config = {
   development: {
     devServer: {
       port: 3000
+    },
+    server: {
+      host: 'http://dev.agar-clone.io'
     }
   },
   production: {
-
+    server: {
+      host: 'http://agar-clone.io'
+    }
   }
 }
 

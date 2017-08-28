@@ -1,12 +1,53 @@
-$color: cyan;
+@import 'variables';
+@import 'overlay';
+
 body {
   // Do some reset here.
   margin: 0;
   padding: 0;
   font-family: Helvetica, 'Microsoft Yahei', '微软雅黑', 'Hiragino Sans GB', 'PingFang SC', Arial, sans-serif;
   font-size: 14px;
-  //
   overflow: hidden;
+  * {
+    box-sizing: border-box;
+  }
+}
+
+button.button {
+  border: none;
+  margin: 0;
+  background-color: grey;
+  display: block;
+  box-shadow: $boxShadow0;
+  border-radius: $borderRadiusS;
+  padding: 8px 15px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: all 200ms;
+  &:active {
+    box-shadow: $boxShadow1;
+  }
+  &.primary {
+    background-color: $colorPrimary;
+    color: lighten($colorPrimary, 80%);
+    &:active {
+      background-color: darken($colorPrimary, 10%);
+    }
+  }
+}
+
+.input-text {
+  border-radius: $borderRadiusS;
+  border: none;
+  box-shadow: $boxShadow0;
+  padding: 10px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 200ms;
+  &:focus {
+    box-shadow: $boxShadow1, 0 0 0 2px rgba($colorPrimary, 0.47);
+  }
 }
 
 #canvas-wrapper {
