@@ -34,7 +34,7 @@ account_handler.init = function (callback) {
 account_handler.create = function (id, passwd, name, callback) {
     account_handler.init(function (error, db) {
         var player_set = db.collection("player");
-        var data = new player_data(id, name, passwd);
+        var data = new player_data(id, name, passwd, null, 0, 0, 0);
 
         if (typeof (id) != "string" || typeof (passwd) != "string" ||
                 typeof (name) != "string") {
@@ -45,11 +45,34 @@ account_handler.create = function (id, passwd, name, callback) {
   });
 };
 
+account_handler.update_passwd = function(id, passwd, callback) {
+    account_handler.init(function(error, db) {
+        var player_set = db.collection('player');
+        if (typeof(id) != "string" || typeof(passwd) != "string") {
+            callback(-1, null);
+            return;
+        }
+        player_set.update({_id: id}, {$set: {"passwd": passwd}}, callback);
+    });
+};
+
+account_handler.update_game_data = function(id, mass, kill, game, callback) {
+    account_handler.init(function(error, db) {
+        var player_set = db.collection('player');
+        if (typeof(id) != 'string' || typeof(mass) != 'number' ||
+            typeof(kill) != 'number' || typeof(game) != 'number') {
+            callback(-1, null);
+            return;
+        }
+        player_set.update({_id: id},
+            {$inc: {'weight': mass, 'nr_game': game, 'nr_kill': kill}}, callback);
+    });
+};
+
 account_handler.find = function (id, passwd, callback) {
     account_handler.init(function (error, db) {
         var player_set = db.collection("player");
-        var query = new player_data(id, null, passwd);
-        player_set.find(query).toArray(callback);
+        player_set.find({"_id": id, 'passwd': passwd}).toArray(callback);
     });
 };
 

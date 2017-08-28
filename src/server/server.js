@@ -101,10 +101,7 @@ function on_register(req, rsp)
 function on_login(req, rsp)
 {
     var param = req.query;
-    if (req.session._id) {
-        logger.info("check account, login by session");
-        return rsp.json(new ret_data(0, "already login"));
-    }
+    
     if (typeof(param) == "undefined") {
         rsp.json(new ret_data(1, "undefined params"));
         logger.info("undefine parameters");
@@ -115,8 +112,12 @@ function on_login(req, rsp)
         logger.info("invalid parameters");
         return;
     }
+    if (req.session._id == param.id) {
+        logger.info("check account, login by session");
+        return rsp.json(new ret_data(0, "already login"));
+    }
     var login_callback = function(err, db) {
-        if (!err) {
+        if (!err && db.length >= 1) {
             req.session._id = param.id;
             rsp.json(new ret_data(0, "loin success"));
         } else {
