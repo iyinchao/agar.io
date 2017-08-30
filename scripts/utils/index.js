@@ -10,33 +10,33 @@ exports.env = () => {
 }
 
 exports.logger = (level, message, extraInfo = null) => {
-  let msg = ''
+  let msg = '\n'
   switch (level) {
     case 'success':
       msg += chalk.bgGreen(chalk.black(' SUCCESS '))
-      msg += chalk.green(` ${message}\n`)
+      msg += chalk.green(` ${message}`)
       break
     case 'error':
       msg += chalk.bgRed(chalk.black(' ERROR '))
-      msg += chalk.red(` ${message}\n`)
+      msg += chalk.red(` ${message}`)
       if (extraInfo) {
         if (extraInfo.stack) {
-          msg += '\nStack trace:\n'
-          msg += chalk.red(extraInfo.stack) + '\n'
+          msg += '\n\nStack trace:\n\n'
+          msg += chalk.red(extraInfo.stack)
         } else {
-          msg += '\nError info:\n'
-          msg += String(extraInfo) + '\n'
+          msg += '\n\nError info:\n\n'
+          msg += String(extraInfo)
         }
       }
       break
     case 'warn':
       msg += chalk.bgYellow(chalk.black(' WARN '))
-      msg += chalk.yellow(` ${message}\n`)
+      msg += chalk.yellow(` ${message}`)
       break
     case 'info':
     default:
       msg += chalk.bgBlue(chalk.black(' INFO '))
-      msg += chalk.blue(` ${message}\n`)
+      msg += chalk.blue(` ${message}`)
   }
   console.log(msg)
 }

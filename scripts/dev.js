@@ -5,6 +5,7 @@ const opn = require('opn')
 const shelljs = require('shelljs')
 const express = require('express')
 const webpack = require('webpack')
+
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const config = require(utils.dir('config/project'))
@@ -27,6 +28,8 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
   } else {
     utils.logger('info', `Cleared build directory: ${utils.dir(config.dist)}`)
   }
+
+  console.log('\n')
 
   // Start webpack and static server
   let readyPromiseResolve

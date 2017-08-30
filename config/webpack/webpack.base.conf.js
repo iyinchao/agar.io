@@ -4,6 +4,7 @@ const utils = require(path.join(baseURL, 'scripts/utils'))
 const config = require(path.join(baseURL, 'config/project'))
 
 const phaserDir = utils.dir('node_modules/phaser')
+const assetSubDir = config.client.assetDir
 
 module.exports = {
   context: utils.dir(),
@@ -11,9 +12,9 @@ module.exports = {
     app: utils.dir('src/client/js/app.js')
   },
   output: {
-    filename: `${config.assetsSubDirectory}/js/[name].[hash:7].js`,
+    filename: `${config.client.assetDir}/js/[name].[hash:7].js`,
     path: utils.dir(`${config.dist}/${config.client.dir}`),
-    publicPath: config.assetsPublicPath
+    publicPath: config.client.publicPath
   },
   resolve: {
     extensions: ['.js', '.json'],
@@ -32,7 +33,10 @@ module.exports = {
       {
         test: /\.js$/,
         loader: 'babel-loader',
-        include: [utils.dir('src/client'), utils.dir('config')],
+        include: [
+          utils.dir('src/client'),
+          utils.dir('config')
+        ],
       },
       {
         test: /\.html$/,
@@ -50,9 +54,7 @@ module.exports = {
         include: [utils.dir('src/client/assets/img')],
         options: {
           limit: 10000,
-          name: path.join(`${config.dist}
-          /${config.client.dir}
-          /${config.assetsSubDirectory}/img/[name].[hash:7].[ext]`)
+          name: `${assetSubDir}/img/[name].[hash:7].[ext]`
         }
       },
       {
@@ -61,9 +63,7 @@ module.exports = {
         include: [utils.dir('src/client/assets/audio')],
         options: {
           limit: 10000,
-          name: path.join(`${config.dist}
-          /${config.client.dir}
-          /${config.assetsSubDirectory}/media/[name].[hash:7].[ext]`)
+          name: `${assetSubDir}/media/[name].[hash:7].[ext]`
         }
       },
       {
@@ -72,34 +72,8 @@ module.exports = {
         include: [utils.dir('src/client/assets/font')],
         options: {
           limit: 10000,
-          name: path.join(`${config.dist}
-          /${config.client.dir}
-          /${config.assetsSubDirectory}/font/[name].[hash:7].[ext]`)
+          name: `${assetSubDir}/font/[name].[hash:7].[ext]`
         }
-      },
-      {
-        test: /\.scss$/,
-        use: [
-          'style-loader',
-          {
-            loader: 'postcss-loader',
-            options: {
-              sourceMap: true,
-              plugins: [
-                require('cssnano')(),
-                require('autoprefixer')({
-                  browsers: ["> 1%", "last 2 versions", "not ie <= 8"]
-                })
-              ]
-            }
-          },
-          {
-            loader: 'sass-loader',
-            options: {
-              sourceMap: true
-            }
-          }
-        ]
       }
     ]
   }

@@ -8,6 +8,7 @@ const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const webpackBaseConf = require('./webpack.base.conf')
+const config = require(path.join(baseURL, 'config/project'))
 
 // Inject HMR client for entry.
 Object.keys(webpackBaseConf.entry).forEach((name) => {
@@ -16,6 +17,34 @@ Object.keys(webpackBaseConf.entry).forEach((name) => {
 
 module.exports = merge(webpackBaseConf, {
   devtool: '#cheap-module-eval-source-map',
+  module: {
+    rules: [
+      {
+        test: /\.scss$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: true,
+              plugins: [
+                require('cssnano')(),
+                require('autoprefixer')({
+                  browsers: [config.client.browserList]
+                })
+              ]
+            }
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: true
+            }
+          }
+        ]
+      }
+    ]
+  },
   plugins: [
     new webpack.DefinePlugin({
       'process.env': {

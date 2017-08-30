@@ -7,10 +7,14 @@ const utils = require('../scripts/utils')
 
 const configCommon = {
   dist: 'dist',
-  assetsSubDirectory: 'static',
-  assetsPublicPath: '/',
   client: {
-    dir: 'client'
+    dir: 'client',
+    assetDir: 'static',
+    assetPublicPath: '/',
+    browserList: ["> 1%", "last 2 versions", "not ie <= 8"]
+  },
+  devServer: {
+
   },
   server: {
 
@@ -23,7 +27,7 @@ const config = {
       port: 3000
     },
     server: {
-      host: 'http://dev.agar-clone.io'
+      host: 'http://localhost:5000'
     }
   },
   production: {

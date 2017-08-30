@@ -3,8 +3,6 @@
  * @author Charlieyin<charlieyin@tencent.com>
 */
 
-const utils = require('../scripts/utils')
-
 module.exports = {
   world: {
     width: 4000,
