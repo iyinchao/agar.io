@@ -61,7 +61,11 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
   app.use(utils.dir(`${config.dist}/${config.client.dir}/${config.assetsSubDirectory}`), express.static('./static'))
 
-  const url = `http://localhost:${config.devServer.port}`
+  let url = ''
+
+  url = config.devServer.host
+    ? config.devServer.host
+    : `http://localhost:${config.devServer.port}`
 
   devMiddleware.waitUntilValid((e) => {
     const errors = e.compilation.errors
