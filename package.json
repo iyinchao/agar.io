@@ -27,6 +27,7 @@
     "cross-env": "^5.0.5",
     "express": "^4.15.4",
     "express-session": "^1.15.5",
+    "jshint": "^2.9.5",
     "log4js": "^2.3.3",
     "phaser": "2.6.2",
     "shelljs": "^0.7.8",
