@@ -223,7 +223,7 @@ io.on('connection', function(socket){
 			}
 		};
 		
-		socket.on('gotit', function(player){
+		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
 			if(util.findUser(users, player.id) > -1) //玩家列表里已存在
 			{
@@ -264,12 +264,13 @@ io.on('connection', function(socket){
 					gameWidth: c.gameWidth,
 					gameHeight: c.gameHeight
 				});
-				console.log('Total players: ' + users.length());
+				console.log('Total players: ' + users.length);
 			}
 		});
 		
 		socket.on('pingcheck', function(){
-			socket.emit('pingcheck');
+			console.log('Recv client\'s message pingcheck');
+			socket.emit('pingcheck','this is pingcheck test');
 		});
 		
 		socket.on('disconnect', function(){
@@ -282,16 +283,18 @@ io.on('connection', function(socket){
 			socket.broadcast.emit('playerDisconnected', {name: currentPlayer.name});
 		});
 		
-		socket.on('0', function(target){
+		socket.on('updatetarget', function(target){
+			console.log("Recv message 0");
 			currentPlayer.lastHeartbeat = new Date().getTime();
 			if(target.x !== currentPlayer.x || target.y !== currentPlayer.y)
 			{
 				currentPlayer.target = target;
 			}
+			socket.emit('testconnection', 'This is a test');
 		});
 		
 		socket.on('2', function(virusCell){
-			function splitCell(ceil){//分裂
+			function splitCell(cell){//分裂
 				if(cell.mass >= c.defaultPlayerMass*2){//体积至少要大于或等于两倍最小玩家大小
 					cell.mass = cell.mass/2;
 					cell.radius = util.massToRadius(ceil.mass);
@@ -328,7 +331,7 @@ io.on('connection', function(socket){
 
 function sendUpdates()
 {
-		console.log("[INFO] Updates Sent!");
+		//console.log("[INFO] Updates Sent!");
 	    users.forEach( function(u) {
         u.x = u.x || c.gameWidth / 2;
         u.y = u.y || c.gameHeight / 2;
@@ -398,10 +401,28 @@ function sendUpdates()
             })
             .filter(function(f) { return f; });
 
-        sockets[u.id].emit('serverTellPlayerMove', visibleCells, visibleFood, visibleMass, visibleVirus); //发送这些信息给玩家
+        sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
+		//发送这些信息给玩家
+		//sockets[u.id].emit('testsendupdates', 'this is a test for sent update');
+		//socket.broadcast.emit('testsendupdates', 'this is a test for sent update');
         
     });
 
+}
+
+function elementsBalance()
+{
+	var foodToadd = c.maxFood - food.length;
+	var virusToadd = c.maxVirus - virus.length;
+	if(foodToadd > Math.round(c.maxFood * 0.1)) //屏幕上的食物不到食物上限的90%，就增加食物
+	{
+		addFood(foodToadd);
+	}
+	
+	if(virusToadd > Math.round(c.maxVirus * 0.1)) //屏幕上的病毒不足病毒上线的90%, 增加病毒
+	{
+		addVirus(virusToadd);
+	}
 }
 
 function movePlayer(player)
@@ -489,6 +510,7 @@ server.get("/login", on_login);
 server.get("/logout", on_exit);
 
 setInterval(sendUpdates, 1000);
+setInterval(elementsBalance, 3000);
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
