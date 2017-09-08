@@ -1,4 +1,3 @@
-'use strict';
 var express = require("express");
 var session = require("express-session");
 
@@ -248,7 +247,7 @@ io.on('connection', function(socket){
 						x: position.x,
 						y: position.y,
 						radius: radius
-					}]
+					}];
 					player.massTotal = c.defaultPlayerMass; //总体积大小
 				}
 				else

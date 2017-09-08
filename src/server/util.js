@@ -1,9 +1,13 @@
-'use strict';
 var cfg = require('../../config/config.json');
 
-exports.massToRadius = function(mass)
-{
-	return 4 + Math.sqrt(mass) * 6;
+exports.WeightToRadius = function(w) {
+    return Math.sqrt(w * cfg.playerWeightToRegion);
+};
+
+exports.MinMax = function(left, right, v) {
+    return v < left ?
+        left :
+        v > right ? right : v;
 };
 
 //计算两个物体之间的距离  根号((x1-x2)^2  + (y1-y2)^2) - r1 - r2
@@ -25,7 +29,7 @@ exports.log = (function () {
 })();
 
 //在当前区域内生成一个随机位置
-exports.randomPosition = function (radius) {
+exports.RandomPosition = function (radius) {
     return {
         x: exports.randomInRange(radius, cfg.gameWidth - radius),
         y: exports.randomInRange(radius, cfg.gameHeight - radius)
@@ -65,7 +69,7 @@ exports.uniformPosition = function(points, radius)
 		
 	}
 	return bestCandidate;
-}
+};
 
 exports.findUser = function(userlist, id)
 {
