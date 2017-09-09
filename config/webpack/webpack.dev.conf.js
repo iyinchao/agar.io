@@ -29,10 +29,7 @@ module.exports = merge(webpackBaseConf, {
               sourceMap: true,
               plugins: [
                 require('cssnano')({
-                  preset: ['default', {
-                    discardComments: false,
-                    normalizeWhitespace: false
-                  }]
+                  // core: false,  // Disable default features
                 }),
                 require('autoprefixer')({
                   browsers: config.client.browserList

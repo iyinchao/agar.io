@@ -10,32 +10,34 @@ const game = new Game({
   ws
 })
 
-ws.socket.on('connect', (e) => {
-  console.log('connected')
-  ws.socket.emit('playerlogin', {
-    'id': -1,
-    'x': 600,
-    'y': 500,
-    'screenWidth': 1200,
-    'screenHeight': 1000,
-    'name': 'charles' + Date.now().toString().slice(0, 5),
-    'target': {
-      'x': 300,
-      'y': 300
-    }
-  })
-})
+// ws.socket.on('connect', (e) => {
+//   console.log('connected')
+//   ws.socket.emit('playerlogin', {
+//     'id': -1,
+//     'x': 600,
+//     'y': 500,
+//     'screenWidth': 1200,
+//     'screenHeight': 1000,
+//     'name': 'charles' + Date.now().toString().slice(0, 5),
+//     'target': {
+//       'x': 300,
+//       'y': 300
+//     }
+//   })
+// })
 
-ws.socket.on('serverTellPlayerMove', (e) => {
-  console.log(e)
-})
+// ws.socket.on('serverTellPlayerMove', (e) => {
+//   console.log(e)
+// })
 
-ws.connect()
+//ws.connect()
+
+// console.log(process.env.NODE_ENV)
 
 // NOTE: For debug purpose. You can remove it without any side-effects.
-window.$game = game
-
-console.log(game)
+if (process.env.NODE_ENV === 'development') {
+  window.$game = game
+}
 
 // class Game extends Phaser.Game {
 //   constructor (container, states = null) {
