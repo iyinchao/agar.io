@@ -18,6 +18,7 @@ module.exports = {
   player: {
     maxCells: 16,
     v2r: 20,
-    initialValue: 20
+    initialValue: 20,
+
   }
 };

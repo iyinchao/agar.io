@@ -34,12 +34,18 @@ const config = {
   },
   production: {
     server: {
-      host: 'http://agar-clone.io'
+      host: 'http://agar-clone.io',
+      ws: 'http://localhost:3000'
     }
   }
 }
 
-module.exports = Object.assign({},
-  configCommon,
-  config[utils.env()] ? config[utils.env()] : config['development']
-)
+const getConfigForEnv = function (env) {
+  return  Object.assign({},
+    configCommon,
+    config[env] ? config[env] : config['development']
+  )
+}
+
+module.exports = getConfigForEnv(utils.env())
+

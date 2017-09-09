@@ -28,11 +28,19 @@ module.exports = merge(webpackBaseConf, {
             options: {
               sourceMap: true,
               plugins: [
-                require('cssnano')(),
+                require('cssnano')({
+                  // core: false,  // Disable default features
+                }),
                 require('autoprefixer')({
-                  browsers: [config.client.browserList]
+                  browsers: config.client.browserList
                 })
               ]
+            }
+          },
+          {
+            loader: 'resolve-url-loader',
+            options: {
+              keepQuery: true
             }
           },
           {

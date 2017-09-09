@@ -5,12 +5,18 @@
 
 import io from 'socket.io-client'
 
-// import projectConfig from '~/config/project'
+// import { getConfigForEnv } from '~/config/project'
+
+// console.log(getConfigForEnv)
+
+// //const projectConfig = getConfigForEnv(process.env.NODE_ENV)
+
+// console.log(projectConfig)
 
 export class WS {
   constructor () {
     this.socket = io(
-      'http://localhost:3000', // projectConfig.server.ws,
+      'localhost:3000',
       {
         autoConnect: false
       }
@@ -22,8 +28,8 @@ export class WS {
   connect () {
     this.socket.open()
   }
-  destroy () {
-
+  disconnect () {
+    this.socket.close()
   }
 }
 
