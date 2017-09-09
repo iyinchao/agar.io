@@ -256,18 +256,19 @@ var virusSplitDir = [
 function DoMultiSplit(player)
 {
     // split into 6 parts
-    var d = player.radius * cfg.SplitDistanceToRadius;
-    var pw = player.weight / virusSplitDir.length;
+    var d = player.radius * cfg.splitDistanceToRadius;
+    var pw = parseInt(player.weight / virusSplitDir.length);
     var ret = [];
     for (var i = 0; i < virusSplitDir.length; ++i) {
-        var newOne = GenerateGameObject(player.id, OBJECT_TYPE, pw);
+        var newOne = new GameObject(player.id, OBJECT_TYPE.PLAYER, pw);
         UpdateAttr(newOne);
-        newOne.x = ParseInt(d * virusSplitDir[i][0] + player.x);
-        newOne.y = ParseInt(d * virusSplitDir[i][1] + player.y);
+        newOne.x = parseInt(d * virusSplitDir[i][0] + player.x);
+        newOne.y = parseInt(d * virusSplitDir[i][1] + player.y);
         if (CheckBound(newOne)) continue;
         ret.push(newOne);
     }
-    player.weight /= virusSplitDir.length;
+    player.weight = parseInt(player.weight / virusSplitDir.length);
+    UpdateAttr(player);
     return ret;
 }
 
@@ -508,17 +509,17 @@ function TestFoo()
 {
     var ret = Join();
     var game = gameRefs[0];
-    cfg.maxFood = 40;
-    cfg.maxVirus=10;
-   // FillEatable(game);
+    cfg.maxFood = 10;
+    cfg.maxVirus= 0;
+    FillEatable(game);
     UpdateSceneBound(0, 0, [minX, maxY], [maxX, minY]);
     Move(0, 0, 100, 0);
 
-    console.log(game.moveables[0]);
-    Eject(0,0);
-    console.log("after ejec:");
-    console.log(game.moveables[0]);
-    console.log(game.others);
+    var player = game.moveables[0].players[0];
+    console.log(player);
+    ret=DoMultiSplit(player);
+    console.log(ret);
+    console.log(player);
 }
 
 //TestFoo();
