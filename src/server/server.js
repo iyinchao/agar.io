@@ -6,7 +6,7 @@ var account_handler = require("./account_handler");
 var logger = require("./logger").logger();
 var log4js = require("./logger").log4js;
 var ret_data = require("./ret_data");
-//zxt 
+//zxt
 var http = require('http').Server(server);
 var io = require('socket.io')(http);
 var users = [];
@@ -113,10 +113,10 @@ function on_register(req, rsp)
 function on_login(req, rsp)
 {
     var param = req.query;
-    
-													   
-														  
-	 
+
+
+
+
     if (typeof(param) == "undefined") {
         rsp.json(new ret_data(1, "undefined params"));
         logger.info("undefine parameters");
@@ -206,7 +206,7 @@ io.on('connection', function(socket){
 			}];
 			massTotal = c.defaultPlayerMass;
 		}
-		
+
 		var currentPlayer = {
 			id: socket.id,
 			x: position.x,
@@ -223,7 +223,7 @@ io.on('connection', function(socket){
 				y: 0
 			}
 		};
-		
+
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
 			if(util.findUser(users, player.id) > -1) //玩家列表里已存在
@@ -268,12 +268,12 @@ io.on('connection', function(socket){
 				console.log('Total players: ' + users.length);
 			}
 		});
-		
+
 		socket.on('pingcheck', function(){
 			console.log('Recv client\'s message pingcheck');
 			socket.emit('pingcheck','this is pingcheck test');
 		});
-		
+
 		socket.on('disconnect', function(){
 			var pos = util.findUser(users, currentPlayer.id); //找到玩家当前位置
 			if(pos > -1)
@@ -283,7 +283,7 @@ io.on('connection', function(socket){
 			console.log('[INFO] Player ' + currentPlayer.name + ' disconnected!!');
 			socket.broadcast.emit('playerDisconnected', {name: currentPlayer.name});
 		});
-		
+
 		socket.on('updatetarget', function(target){
 			console.log("Recv message 0");
 			currentPlayer.lastHeartbeat = new Date().getTime();
@@ -293,7 +293,7 @@ io.on('connection', function(socket){
 			}
 			socket.emit('testconnection', 'This is a test');
 		});
-		
+
 		socket.on('2', function(virusCell){
 			function splitCell(cell){//分裂
 				if(cell.mass >= c.defaultPlayerMass*2){//体积至少要大于或等于两倍最小玩家大小
@@ -326,7 +326,7 @@ io.on('connection', function(socket){
 				}
 				currentPlayer.lastSplit = new Date().getTime();
 			}
-	
+
 	});
 });
 
@@ -402,11 +402,12 @@ function sendUpdates()
             })
             .filter(function(f) { return f; });
 
-        sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
+        // sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
+        sockets[u.id].emit('serverTellPlayerMove', users, food, massFood, virus);
 		//发送这些信息给玩家
 		//sockets[u.id].emit('testsendupdates', 'this is a test for sent update');
 		//socket.broadcast.emit('testsendupdates', 'this is a test for sent update');
-        
+
     });
 
 }
@@ -419,7 +420,7 @@ function elementsBalance()
 	{
 		addFood(foodToadd);
 	}
-	
+
 	if(virusToadd > Math.round(c.maxVirus * 0.1)) //屏幕上的病毒不足病毒上线的90%, 增加病毒
 	{
 		addVirus(virusToadd);
@@ -510,7 +511,7 @@ server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
 
-setInterval(sendUpdates, 1000);
+setInterval(sendUpdates, 20);
 setInterval(elementsBalance, 3000);
 
 var ipaddress = '0.0.0.0';

@@ -10,6 +10,26 @@ const game = new Game({
   ws
 })
 
+ws.socket.on('connect', (e) => {
+  console.log('connected')
+  ws.socket.emit('playerlogin', {
+    'id': -1,
+    'x': 600,
+    'y': 500,
+    'screenWidth': 1200,
+    'screenHeight': 1000,
+    'name': 'charles' + Date.now().toString().slice(0, 5),
+    'target': {
+      'x': 300,
+      'y': 300
+    }
+  })
+})
+
+ws.socket.on('serverTellPlayerMove', (e) => {
+  console.log(e)
+})
+
 ws.connect()
 
 // NOTE: For debug purpose. You can remove it without any side-effects.
@@ -60,7 +80,6 @@ console.log(game)
 
 //           graphics.beginFill(0xFF0000, 1);
 //           graphics.drawCircle(1200, 1200, 100);
-
 
 //               //
 //     // console.log(this.game.width, this.game.height)
