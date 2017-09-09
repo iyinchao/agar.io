@@ -32,7 +32,7 @@ const States = {
         'background')
       this.game.$graphics = this.game.add.graphics(0, 0)
 
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 200; i++) {
         this.game.addCharacter('food', {
           id: i,
           value: 1,

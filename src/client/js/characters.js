@@ -36,6 +36,7 @@ export class Player extends Character {
     this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
     this.game.$graphics.beginFill(0xa92cc8, 1)
     this.game.$graphics.drawCircle(this.position.x, this.position.y, this.value)
+    this.game.$graphics.endFill()
     this.text.x = this.position.x
     this.text.y = this.position.y
     this.text.fontSize = this.value > 60 ? 32 : this.value / 2
@@ -54,9 +55,10 @@ export class Food extends Character {
   update () {
     super.update()
 
-    this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
+    // this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
     this.game.$graphics.beginFill(0xa92cc8, 1)
-    this.game.$graphics.drawCircle(this.position.x, this.position.y, this.value)
+    this.game.$graphics.drawCircle(this.position.x, this.position.y, 20)
+    this.game.$graphics.endFill()
   }
 }
 
