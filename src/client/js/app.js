@@ -9,6 +9,12 @@ const ws = new WS()
 const game = new Game({
   ws
 })
+const overlay = new Overlay({
+  ws
+})
+
+overlay.game = game
+game.$overlay = overlay
 
 // ws.socket.on('connect', (e) => {
 //   console.log('connected')
