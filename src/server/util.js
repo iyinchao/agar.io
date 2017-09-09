@@ -10,6 +10,19 @@ exports.MinMax = function(left, right, v) {
         v > right ? right : v;
 };
 
+exports.CosSinX = function(x, y) {
+    if (!x && !y)
+        return [0, 0];
+    var s = Math.sqrt(x * x + y * y);
+    return [x / s, y / s];
+};
+
+exports.Distance = function(p1, p2) {
+    var dx = p1.x - p2.x;
+    var dy = p1.y - p2.y;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
 //计算两个物体之间的距离  根号((x1-x2)^2  + (y1-y2)^2) - r1 - r2
 exports.getDistance = function(p1, p2)
 {

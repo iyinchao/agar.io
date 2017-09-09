@@ -5,6 +5,8 @@ var account_handler = require("./account_handler");
 var logger = require("./logger").logger();
 var log4js = require("./logger").log4js;
 var ret_data = require("./ret_data");
+
+var gameOps = require("./game");
 //zxt 
 var http = require('http').Server(server);
 var io = require('socket.io')(http);

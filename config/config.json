@@ -17,6 +17,7 @@
 		"splitMass": 180
 	},
 
+    "sizeToEat": 1.2,
     "movePeriod": 0.02,
     "maxFood": 1000,
     "maxVirus": 50,
@@ -27,6 +28,10 @@
 
     "playerWeight": 200,
     "playerWeightToRegion": 1,
+    "playerMinRadius": 10,
+    "splitDistanceToRadius": 3,
+    "ejectDistanceToRadius": 2,
+    "maxCellCount": 16,
 
     "foodWeight": 1,
     "foodRadius":10,
@@ -37,7 +42,8 @@
     "massWeight": 30,
     "massRadius": 30,
 
-    "weightXspeed": 1,
+    "weightXspeed": 400000,
+    "minPlayerSpeed": 5,
 
     "adminPass": "DEFAULT",
     "gameMass": 20000,
