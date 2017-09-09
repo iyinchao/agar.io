@@ -189,6 +189,24 @@ function addVirus(numToAdd)
 		});
 	}
 }
+
+function addMassFood(numToAdd)
+{
+	while(numToAdd--)
+	{
+		var mass = c.fireFood;
+		var radius = util.massToRadius(mass);
+		var position = util.randomPosition(radius);
+		massFood.push({
+			id: ((new Date()).getTime() + '' + virus.length) >>> 0,
+			x: position.x,
+			y: position.y,
+			radius: radius,
+			mass: mass/////////色彩还没处理
+		});
+	}
+}
+
 io.on('connection', function(socket){
 		console.log('[INFO] A user connected!!!!');
 		var type = socket.handshake.query.type;
@@ -226,6 +244,9 @@ io.on('connection', function(socket){
 
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
+			console.log('[INFO] Player ' + player.id + ' connecting !');
+			player.id = socket.id;
+			console.log('[INFO] Player ' + player.id + ' connecting !');
 			if(util.findUser(users, player.id) > -1) //玩家列表里已存在
 			{
 				console.log('[INFO] Player is already in, kicking off');
@@ -285,7 +306,7 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('updatetarget', function(target){
-			console.log("Recv message 0");
+			console.log("Recv message updatetarget");
 			currentPlayer.lastHeartbeat = new Date().getTime();
 			if(target.x !== currentPlayer.x || target.y !== currentPlayer.y)
 			{
@@ -294,7 +315,7 @@ io.on('connection', function(socket){
 			socket.emit('testconnection', 'This is a test');
 		});
 
-		socket.on('2', function(virusCell){
+		socket.on('dividCell', function(virusCell){
 			function splitCell(cell){//分裂
 				if(cell.mass >= c.defaultPlayerMass*2){//体积至少要大于或等于两倍最小玩家大小
 					cell.mass = cell.mass/2;
@@ -327,7 +348,14 @@ io.on('connection', function(socket){
 				currentPlayer.lastSplit = new Date().getTime();
 			}
 
-	});
+		});
+
+		socket.on('spitMass', function(player){
+			//对于player的每一个cell，如果这个cell尺寸达到吐营养科的标准，则吐营养块
+			//营养块移动一个位置
+			//营养块数组增加
+		});
+
 });
 
 function sendUpdates()
@@ -402,12 +430,12 @@ function sendUpdates()
             })
             .filter(function(f) { return f; });
 
-        // sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
-        sockets[u.id].emit('serverTellPlayerMove', users, food, massFood, virus);
+        //sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
 		//发送这些信息给玩家
 		//sockets[u.id].emit('testsendupdates', 'this is a test for sent update');
 		//socket.broadcast.emit('testsendupdates', 'this is a test for sent update');
-
+        //sockets[u.id].emit('serverTellPlayerMove', {"users":users, "food":food, "virus":virus, "massFood":massFood});
+		sockets[u.id].emit('serverTellPlayerMove', {"visibleCells":visibleCells,"visibleFood":visibleFood,"visibleMass":visibleMass,"visibleVirus":visibleVirus});
     });
 
 }
@@ -416,6 +444,7 @@ function elementsBalance()
 {
 	var foodToadd = c.maxFood - food.length;
 	var virusToadd = c.maxVirus - virus.length;
+	var massFoodToAdd = c.maxMassFood - massFood.length;
 	if(foodToadd > Math.round(c.maxFood * 0.1)) //屏幕上的食物不到食物上限的90%，就增加食物
 	{
 		addFood(foodToadd);
@@ -425,10 +454,15 @@ function elementsBalance()
 	{
 		addVirus(virusToadd);
 	}
+
+	if(massFoodToAdd > Math.round(c.fireFood * 0.1))
+	{
+		addMassFood(massFoodToAdd);
+	}
 }
 
 function movePlayer(player)
-{
+{/*
 	var x = 0, y = 0;
 	for(var i=0;i<player.cells.length;i++)//针对每一个玩家的分身执行移动操作
 	{
@@ -504,6 +538,7 @@ function movePlayer(player)
     }
     player.x = x/player.cells.length;
     player.y = y/player.cells.length;
+	*/
 }
 
 server.all("/*", checker);
@@ -511,8 +546,9 @@ server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
 
-setInterval(sendUpdates, 20);
+setInterval(sendUpdates, 25);
 setInterval(elementsBalance, 3000);
+setInterval(movePlayer, 1000);
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
