@@ -1,4 +1,12 @@
+'use strict';		 
 var cfg = require('../../config/config.json');
+
+exports.massToRadius = function(mass)
+{
+	return 4 + Math.sqrt(mass) * 6;
+};
+
+
 
 exports.WeightToRadius = function(w) {
     return Math.sqrt(w * cfg.playerWeightToRegion);
@@ -42,10 +50,8 @@ exports.log = (function () {
 })();
 
 //在当前区域内生成一个随机位置
-exports.randomPosition = function (radius) 
-{
-    return 
-	{
+exports.randomPosition = function (radius) {
+    return {
         x: exports.randomInRange(radius, cfg.gameWidth - radius),
         y: exports.randomInRange(radius, cfg.gameHeight - radius)
     };
