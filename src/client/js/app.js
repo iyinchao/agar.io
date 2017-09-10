@@ -19,12 +19,10 @@ game.$overlay = overlay
 // ws.socket.on('connect', (e) => {
 //   console.log('connected')
 //   ws.socket.emit('playerlogin', {
-//     'id': -1,
-//     'x': 600,
-//     'y': 500,
 //     'screenWidth': 1200,
 //     'screenHeight': 1000,
 //     'name': 'charles' + Date.now().toString().slice(0, 5),
+//     // Mouse position on screen
 //     'target': {
 //       'x': 300,
 //       'y': 300
@@ -36,13 +34,12 @@ game.$overlay = overlay
 //   console.log(e)
 // })
 
-//ws.connect()
-
 // console.log(process.env.NODE_ENV)
 
 // NOTE: For debug purpose. You can remove it without any side-effects.
 if (process.env.NODE_ENV === 'development') {
   window.$game = game
+  window.$overlay = overlay
 }
 
 // class Game extends Phaser.Game {

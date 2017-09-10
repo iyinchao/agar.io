@@ -16,7 +16,7 @@ import io from 'socket.io-client'
 export class WS {
   constructor () {
     this.socket = io(
-      'localhost:3000',
+      'http://45.76.182.99:3000',
       {
         autoConnect: false
       }

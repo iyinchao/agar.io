@@ -3,7 +3,7 @@ const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const config = require(path.join(baseURL, 'config/project'))
 
-const phaserDir = utils.dir('node_modules/phaser')
+const phaserDir = utils.dir('node_modules/phaser-ce')
 const assetSubDir = config.client.assetDir
 
 module.exports = {
