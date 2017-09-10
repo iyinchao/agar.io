@@ -42,8 +42,10 @@ exports.log = (function () {
 })();
 
 //在当前区域内生成一个随机位置
-exports.RandomPosition = function (radius) {
-    return {
+exports.randomPosition = function (radius) 
+{
+    return 
+	{
         x: exports.randomInRange(radius, cfg.gameWidth - radius),
         y: exports.randomInRange(radius, cfg.gameHeight - radius)
     };
