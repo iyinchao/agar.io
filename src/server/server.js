@@ -518,38 +518,128 @@ function gameLoop()
     }
 }
 
-function eatFood(position)
+function eatFood(player, player_start_position)
 {
-	//for(var i=0; i<food.length; i++)
-	//{
-		
-	//}
+	if(player.x >= player_start_position.x && player.y <= player_start_position.y)//第一象限
+	{
+		for(var i=0; i<food.length; i++)
+		{
+			if(food[i].x >= player_start_position.x && food[i].x <= player.x)
+			{
+				var routine_y = player_start_position.y - ((player_start_position.y - player.y)/(player.x - player_start_position.x))*(food[i].x - player_start_position.x);
+				if(routine_y - player.radius < food[i].y && food[i].y < routine_y + player.radius) // 在范围之内
+				{
+					foodChange.push({
+						id: food[i].id,
+						x: food[i].x,
+						y: food[i].y,
+						radius: food[i].radius,
+						hue: food[i].hue,
+						op: -1
+					});
+					player.mass += 1;
+					food.splice(i,1);//删除食物
+					
+					player.radius = util.massToRadius(player.mass);
+				}
+			}
+		}
+	}
+	else if(player.x < player_start_position.x && player.y <= player_start_position.y)//第二象限
+	{
+		for(var i=0; i<food.length; i++)
+		{
+			var routine_y = player_start_position.y - ((player_start_position.y - player.y)/(player_start_position.x - player.x))*(player_start_position.x - food[i].x);
+			if(routine_y - player.radius < food[i].y && food[i].y < routine_y + player.radius) // 在范围之内
+			{
+				foodChange.push({
+					id: food[i].id,
+					x: food[i].x,
+					y: food[i].y,
+					radius: food[i].radius,
+					hue: food[i].hue,
+					op: -1
+				});
+				player.mass += 1;
+				food.splice(i,1);//删除食物
+				
+				player.radius = util.massToRadius(player.mass);
+			}
+		}
+	}
+	else if(player.x <= player_start_position.x && player.y > player_start_position.y)
+	{
+		for(var i=0; i<food.length; i++)
+		{
+			var routine_y = player_start_position.y - ((player_start_position.y - player.y)/(player.x - player_start_position.x))*(food[i].x - player_start_position.x);
+			if(routine_y - player.radius < food[i].y && food[i].y < routine_y + player.radius) // 在范围之内
+			{
+				foodChange.push({
+					id: food[i].id,
+					x: food[i].x,
+					y: food[i].y,
+					radius: food[i].radius,
+					hue: food[i].hue,
+					op: -1
+				});
+				player.mass += 1;
+				food.splice(i,1);//删除食物
+				
+				player.radius = util.massToRadius(player.mass);
+			}
+		}
+	}
+	else //if(player.x > player_start_position.x && player.y > player_start_position.y)
+	{
+		for(var i=0; i<food.length; i++)
+		{
+			var routine_y = player_start_position.y - ((player_start_position.y - player.y)/(player.x - player_start_position.x))*(food[i].x - player_start_position.x);
+			if(routine_y - player.radius < food[i].y && food[i].y < routine_y + player.radius) // 在范围之内
+			{
+				foodChange.push({
+					id: food[i].id,
+					x: food[i].x,
+					y: food[i].y,
+					radius: food[i].radius,
+					hue: food[i].hue,
+					op: -1
+				});
+				player.mass += 1;
+				food.splice(i,1);//删除食物
+				
+				player.radius = util.massToRadius(player.mass);
+			}
+		}
+	}
 }
 
-function eatVirus(player)
+function eatVirus(player, player_start_position)
 {
 }
 
-function meetOtherPlayer(player)
+function meetOtherPlayer(player, player_start_position)
 {
 }
 
 function doPlayerMoveLogic(player)
 {
+	
+	
 	movePlayer(player);//这一段时间间隔，只是计算出下一帧的位置，实际上还并未移动
-	eatFood(player);//计算在这一帧，轨迹扫过的地方，覆盖了哪些食物，吃掉
-	eatVirus(player);//计算在这一帧，轨迹扫过的地方，覆盖了哪些病毒，吃掉
-	meetOtherPlayer(player);//计算在这一帧，轨迹扫过的地方，有没有遇到其它玩家
+	
+	//eatVirus(player, player_start_position);//计算在这一帧，轨迹扫过的地方，覆盖了哪些病毒，吃掉
+	//meetOtherPlayer(player, player_start_position);//计算在这一帧，轨迹扫过的地方，有没有遇到其它玩家
 }
 
 function movePlayer(player)
 {
+	var player_start_position = player;
 	var x = 0, y = 0;
 	for(var i=0;i<player.cells.length;i++)//针对每一个玩家的分身执行移动操作
 	{
 		var distance = Math.sqrt(Math.pow(player.cells[i].x - player.target.x,2) + Math.pow(player.cells[i].y - player.target.y, 2));
 		console.log("distance:"+distance);
-		var speed = 5*c.slowBase/player.cells[i].mass;
+		var speed =2 + 5*c.slowBase/player.cells[i].mass;
 		console.log("speed:"+speed);
 		var deltaDis = (speed * c.networkUpdateFactor)/10;
 		console.log("deltaDis:"+deltaDis);
@@ -557,13 +647,9 @@ function movePlayer(player)
 		var deltaY;
 		if(player.target.x >= player.cells[i].x && player.target.y <= player.cells[i].y)//第一象限
 		{
-			//console.log("The 1111111111111111st xiangxian");
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 			deltaX = ((player.target.x - player.cells[i].x)/distance) * deltaDis;
 			deltaY = ((player.cells[i].y - player.target.y)/distance) * deltaDis;
-			//console.log("deltaX:"+deltaX);
-			//console.log("deltaY:"+deltaY);
+
 			if(player.cells[i].x + deltaX >= c.gameWidth)//边界保护
 			{
 				player.cells[i].x = c.gameWidth - 10;
@@ -580,18 +666,11 @@ function movePlayer(player)
 			{
 				player.cells[i].y -= deltaY;
 			}
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
 		else if(player.target.x <= player.cells[i].x && player.target.y <= player.cells[i].y)//第二象限
 		{
-			//console.log("The 22222222222222nd xiangxian");
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 			deltaX = ((player.cells[i].x - player.target.x)/distance) * deltaDis;
 			deltaY = ((player.cells[i].y - player.target.y)/distance) * deltaDis;
-			//console.log("deltaX:"+deltaX);
-			//console.log("deltaY:"+deltaY);
 			if(player.cells[i].x - deltaX <= 0)
 			{
 				player.cells[i].x = 10;
@@ -608,18 +687,12 @@ function movePlayer(player)
 			{
 				player.cells[i].y -= deltaY;
 			}
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
 		else if(player.target.x < player.cells[i].x && player.target.y >= player.cells[i].y)//第三象限
 		{
-			//console.log("The 3333333333333rd xiangxian");
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 			deltaX = ((player.cells[i].x - player.target.x)/distance) * deltaDis;
 			deltaY = ((player.target.y - player.cells[i].y)/distance) * deltaDis;
-			//console.log("deltaX:"+deltaX);
-			//console.log("deltaY:"+deltaY);
+
 			if(player.cells[i].x - deltaX <= 0)
 			{
 				player.cells[i].x = 10;
@@ -636,18 +709,11 @@ function movePlayer(player)
 			{
 				player.cells[i].y += deltaY;
 			}
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
 		else   //第四象限
 		{
-			//console.log("The 444444444444444444th xiangxian");
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 			deltaX = ((player.target.x - player.cells[i].x)/distance) * deltaDis;
 			deltaY = ((player.target.y - player.cells[i].y)/distance) * deltaDis;
-			//console.log("deltaX:"+deltaX);
-			//console.log("deltaY:"+deltaY);
 			if(player.cells[i].x + deltaX >= c.gameWidth)
 			{
 				player.cells[i].x = c.gameWidth - 10;
@@ -664,14 +730,14 @@ function movePlayer(player)
 			{
 				player.cells[i].y += deltaY;
 			}
-			//console.log("player.cells[i].x:"+player.cells[i].x);
-			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
 		x += player.cells[i].x;
 		y += player.cells[i].y;
+		eatFood(player.cells[i], player_start_position);//计算在这一帧，轨迹扫过的地方，覆盖了哪些食物，吃掉
     }
 	player.x = x/player.cells.length;
     player.y = y/player.cells.length;
+	
 }
 
 server.all("/*", checker);
