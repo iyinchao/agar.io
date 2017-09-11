@@ -667,9 +667,11 @@ function movePlayer(player)
 			//console.log("player.cells[i].x:"+player.cells[i].x);
 			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
+		x += player.cells[i].x;
+		y += player.cells[i].y;
     }
-	//player.x = player.target.x;
-    //player.y = player.target.y;
+	player.x = x/player.cells.length;
+    player.y = y/player.cells.length;
 }
 
 server.all("/*", checker);
