@@ -309,7 +309,7 @@ io.on('connection', function(socket){
 				currentPlayer = player;
 				currentPlayer.lastHeartbeat = new Date().getTime();
 				users.push(currentPlayer); //将当前玩家加入到玩家列表
-				io.emit('playerJoin', { name: currentPlayer.name}); //io.emit是发送给所有玩家
+				io.emit('playerJoin', { id: currentPlayer.id}); //io.emit是发送给所有玩家
 				socket.emit('gameSetup', {
 					id: player.id,
 					x: player.x,
