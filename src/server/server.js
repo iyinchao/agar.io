@@ -309,7 +309,7 @@ io.on('connection', function(socket){
 				currentPlayer = player;
 				currentPlayer.lastHeartbeat = new Date().getTime();
 				users.push(currentPlayer); //将当前玩家加入到玩家列表
-				io.emit('playerJoin', { name: currentPlayer.name}); //io.emit是发送给所有玩家
+				io.emit('playerJoin', { id: currentPlayer.id}); //io.emit是发送给所有玩家
 				socket.emit('gameSetup', {
 					id: player.id,
 					x: player.x,
@@ -667,9 +667,11 @@ function movePlayer(player)
 			//console.log("player.cells[i].x:"+player.cells[i].x);
 			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
+		x += player.cells[i].x;
+		y += player.cells[i].y;
     }
-	//player.x = player.target.x;
-    //player.y = player.target.y;
+	player.x = x/player.cells.length;
+    player.y = y/player.cells.length;
 }
 
 server.all("/*", checker);
