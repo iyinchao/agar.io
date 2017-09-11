@@ -99,7 +99,6 @@ const States = {
               player.cells[index].x = cell.x
               player.cells[index].y = cell.y
               player.cells[index].radius = cell.radius
-              console.log(cell.x, cell.y)
             })
           }
         })
@@ -206,9 +205,9 @@ const States = {
 
 
 
-      this.game.$playerList.forEach((player) => {
-        player.update()
-      })
+      // this.game.$playerList.forEach((player) => {
+      //   player.update()
+      // })
 
       // this.game.getViewRect()
     },
@@ -404,6 +403,7 @@ class Game extends Phaser.Game {
           this.$renderList.push(cell)
         }
       })
+      this.$renderList.push(player)
     })
   }
   isInView (character) {

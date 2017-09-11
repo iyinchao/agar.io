@@ -60,30 +60,33 @@ export class Player extends Character {
         y: cell.y
       })
     })
-    // this.text = this.game.add.text(0, 0, this.name, {
-    //   font: 'bold 32px Arial',
-    //   fill: '#FFF',
-    //   stroke: '#000',
-    //   strokeThickness: 3
-    // })
-    // this.text.anchor.setTo(0.5)
+    this.text = this.game.add.text(0, 0, this.name, {
+      font: 'bold 32px Arial',
+      fill: '#FFF',
+      stroke: '#000',
+      strokeThickness: 3
+    })
+    this.text.anchor.setTo(0.5)
   }
   update () {
     super.update()
 
     if (this.cells && this.cells.length) {
-      // let largest = 0 // Largest cell index
-      // let largestR = 0
+      let largest = 0 // Largest cell index
+      let largestR = 0
       this.cells.forEach((cell, index) => {
-        // if (cell.radius > largestR) {
-        //   largest = index
-        // }
-        // this.game.$graphics.lineStyle(10, this._hexColor, 1)
-        // this.game.$graphics.beginFill(this._hexFillColor, 1)
-        // this.game.$graphics.drawCircle(cell.x, cell.y, cell.radius)
-        // this.game.$graphics.endFill()
-        // this.game.$graphics.lineWidth = 0
+        if (cell.radius > largestR) {
+          largest = index
+        }
+        this.game.$graphics.lineStyle(10, this._hexColor, 1)
+        this.game.$graphics.beginFill(this._hexFillColor, 1)
+        this.game.$graphics.drawCircle(cell.x, cell.y, cell.radius)
+        this.game.$graphics.endFill()
+        this.game.$graphics.lineWidth = 0
       })
+      this.text.x = this.cells[largest].x
+      this.text.y = this.cells[largest].y
+      this.text.fontSize = this.cells[largest].radius > 60 ? 32 : this.cells[largest].radius / 2
     }
     // Draw self
     // this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
