@@ -740,6 +740,14 @@ function movePlayer(player)
 	
 }
 
+function massLoss()
+{
+	for(var i=0;i<users.length;i++)
+	{
+		users[i].mass--;
+	}
+}
+
 server.all("/*", checker);
 server.get("/register", on_register);
 server.get("/login", on_login);
@@ -748,6 +756,7 @@ server.get("/logout", on_exit);
 setInterval(gameLoop, 40);
 setInterval(sendUpdates, 1000/c.networkUpdateFactor);
 setInterval(elementsBalance, 3000);
+setInterval(massLoss, 1000);
 
 
 var ipaddress = '0.0.0.0';
