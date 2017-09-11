@@ -23,8 +23,8 @@
     "maxVirus": 50,
     "maxPlayer": 8,
 
-    "gameWidth": 3000,
-    "gameHeight": 3000,
+    "gameWidth": 5000,
+    "gameHeight": 5000,
 
     "playerWeight": 200,
     "playerWeightToRegion": 1,

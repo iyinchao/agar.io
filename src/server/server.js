@@ -16,6 +16,9 @@ var virus = [];
 var sockets = {};
 var c = require('../../config/config.json');
 var util = require('./util');
+var foodChange = [];
+var virusChange = [];
+var massFoodChange = [];
 var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 //zxt
 var server = new express();
@@ -159,13 +162,23 @@ function addFood(numToAdd)
 	while(numToAdd--)
 	{
 		var position = util.randomPosition(radius);
+		var id = ((new Date()).getTime() + '' + food.length) >>> 0;
+		var hue = Math.round(Math.random() * 360);
 		food.push({
-			id: ((new Date()).getTime() + '' + food.length) >>> 0,
+			id: id,
 			x: position.x,
 			y: position.y,
 			radius: radius,
 			mass: Math.random() + 2,
-			hue: Math.round(Math.random() * 360)
+			hue: hue
+		});
+		foodChange.push({
+			id: id,
+			x: position.x,
+			y: position.y,
+			radius: radius,
+			hue: hue,
+			op: 1
 		});
 	}
 }
@@ -177,8 +190,9 @@ function addVirus(numToAdd)
 		var mass = util.randomInRange(c.virus.defaultMass.from, c.virus.defaultMass.to, true);
 		var radius = util.massToRadius(mass);
 		var position = util.randomPosition(radius);
+		var id = ((new Date()).getTime() + '' + virus.length) >>> 0;
 		virus.push({
-			id: ((new Date()).getTime() + '' + virus.length) >>> 0,
+			id: id,
 			x: position.x,
 			y: position.y,
 			radius: radius,
@@ -186,6 +200,14 @@ function addVirus(numToAdd)
 			fill: c.virus.fill,
 			stroke: c.virus.stroke,
 			strokeWidth: c.virus.strokeWidth
+		});
+		virusChange.push({
+			id: id,
+			x: position.x,
+			y: position.y,
+			radius: radius,
+			fill: c.virus.fill,
+			op: 1
 		});
 	}
 }
@@ -197,19 +219,27 @@ function addMassFood(numToAdd)
 		var mass = c.fireFood;
 		var radius = util.massToRadius(mass);
 		var position = util.randomPosition(radius);
+		var id = ((new Date()).getTime() + '' + virus.length) >>> 0;
 		massFood.push({
-			id: ((new Date()).getTime() + '' + virus.length) >>> 0,
+			id: id,
 			x: position.x,
 			y: position.y,
 			radius: radius,
 			mass: mass/////////色彩还没处理
+		});
+		massFoodChange.push({
+			id: id,
+			x: position.x,
+			y: position.y,
+			radius: radius,
+			op: 1
 		});
 	}
 }
 
 io.on('connection', function(socket){
 		console.log('[INFO] A user connected!!!!');
-		var type = socket.handshake.query.type;
+		var type = 'player';//socket.handshake.query.type;
 		var radius = util.massToRadius(c.defaultPlayerMass);
 		var position = util.randomPosition(radius);
 		var cells = [];
@@ -241,10 +271,8 @@ io.on('connection', function(socket){
 				y: 0
 			}
 		};
-
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
-			console.log('[INFO] Player ' + player.id + ' connecting !');
 			player.id = socket.id;
 			console.log('[INFO] Player ' + player.id + ' connecting !');
 			if(util.findUser(users, player.id) > -1) //玩家列表里已存在
@@ -283,8 +311,15 @@ io.on('connection', function(socket){
 				users.push(currentPlayer); //将当前玩家加入到玩家列表
 				io.emit('playerJoin', { name: currentPlayer.name}); //io.emit是发送给所有玩家
 				socket.emit('gameSetup', {
+					id: player.id,
+					x: player.x,
+					y: player.y,
 					gameWidth: c.gameWidth,
-					gameHeight: c.gameHeight
+					gameHeight: c.gameHeight,
+					allFood: food,
+					allVirus: virus,
+					allMassFood: massFood,
+					allPlayers: users
 				});
 				console.log('Total players: ' + users.length);
 			}
@@ -306,13 +341,18 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('updatetarget', function(target){
-			console.log("Recv message updatetarget");
+			console.log("target.x:"+target.x+" target.y:"+target.y);
 			currentPlayer.lastHeartbeat = new Date().getTime();
 			if(target.x !== currentPlayer.x || target.y !== currentPlayer.y)
 			{
+				target.x = currentPlayer.x + target.x - currentPlayer.screenWidth/2;
+				target.y = currentPlayer.y + target.y - currentPlayer.screenHeight/2;
 				currentPlayer.target = target;
 			}
-			socket.emit('testconnection', 'This is a test');
+			console.log("currentPlayer.x:"+currentPlayer.x+"  currentPlayer.y:"+currentPlayer.y);
+			console.log("screenWidth/2:"+currentPlayer.screenWidth/2+"   screenHeight/2:"+currentPlayer.screenHeight/2);
+			console.log("Recv message updatetarget：{ x:"+target.x+", y: " + target.y + "}");
+			//socket.emit('testconnection', 'This is a test');
 		});
 
 		socket.on('dividCell', function(virusCell){
@@ -323,7 +363,7 @@ io.on('connection', function(socket){
 					currentPlayer.cells.push({
 						mass: cell.mass,
 						x: cell.x,
-						y: ceil.y,
+						y: cell.y,
 						radius: ceil.radius,
 						speed: 25
 					});
@@ -397,7 +437,7 @@ function sendUpdates()
             })
             .filter(function(f) { return f; });
 
-        var visibleCells  = users //玩家视野内的别的玩家
+        var visibleCells  = users//玩家视野内的玩家
             .map(function(f) {
                 for(var z=0; z<f.cells.length; z++)
                 {
@@ -417,31 +457,40 @@ function sendUpdates()
                                 name: f.name
                             };
                         } else {
+                            //console.log("Nombre: " + f.name + " Es Usuario");
                             return {
+								id: f.id,
                                 x: f.x,
                                 y: f.y,
                                 cells: f.cells,
                                 massTotal: Math.round(f.massTotal),
                                 hue: f.hue,
+								name: f.name
                             };
                         }
                     }
                 }
             })
             .filter(function(f) { return f; });
-
+		//visibleCells.push(users[u]);
         //sockets[u.id].emit('serverTellPlayerMove', visibleCells,visibleFood,visibleMass,visibleVirus);
 		//发送这些信息给玩家
 		//sockets[u.id].emit('testsendupdates', 'this is a test for sent update');
 		//socket.broadcast.emit('testsendupdates', 'this is a test for sent update');
         //sockets[u.id].emit('serverTellPlayerMove', {"users":users, "food":food, "virus":virus, "massFood":massFood});
-		sockets[u.id].emit('serverTellPlayerMove', {"visibleCells":visibleCells,"visibleFood":visibleFood,"visibleMass":visibleMass,"visibleVirus":visibleVirus});
+		
+		//console.log('users[u].id:'+u.id);
+		sockets[u.id].emit('serverTellPlayerMove', {"visibleCells":users, "foodChange":foodChange,"massFoodChange":massFoodChange,"virusChange":virusChange});
     });
 
 }
 
 function elementsBalance()
 {
+	foodChange = [];
+	virusChange = [];
+	massFoodChange = [];
+	
 	var foodToadd = c.maxFood - food.length;
 	var virusToadd = c.maxVirus - virus.length;
 	var massFoodToAdd = c.maxMassFood - massFood.length;
@@ -459,86 +508,168 @@ function elementsBalance()
 	{
 		addMassFood(massFoodToAdd);
 	}
+
+}
+
+function gameLoop()
+{
+	for (var i = 0; i < users.length; i++) {
+        doPlayerMoveLogic(users[i]);
+    }
+}
+
+function eatFood(position)
+{
+	//for(var i=0; i<food.length; i++)
+	//{
+		
+	//}
+}
+
+function eatVirus(player)
+{
+}
+
+function meetOtherPlayer(player)
+{
+}
+
+function doPlayerMoveLogic(player)
+{
+	movePlayer(player);//这一段时间间隔，只是计算出下一帧的位置，实际上还并未移动
+	eatFood(player);//计算在这一帧，轨迹扫过的地方，覆盖了哪些食物，吃掉
+	eatVirus(player);//计算在这一帧，轨迹扫过的地方，覆盖了哪些病毒，吃掉
+	meetOtherPlayer(player);//计算在这一帧，轨迹扫过的地方，有没有遇到其它玩家
 }
 
 function movePlayer(player)
-{/*
+{
 	var x = 0, y = 0;
 	for(var i=0;i<player.cells.length;i++)//针对每一个玩家的分身执行移动操作
 	{
-		var target = {
-			x: player.x - player.cells[i].x + player.target.x,
-			y: player.y - player.cells[i].y + player.target.y
-		};
-		var dist = Math.sqrt(Math.pow(target.x, 2) + Math.pow(target.y, 2));//距离
-		var deg = Math.atan2(target.y, target.x);
-		var slowDown = 1;
-		if(player.cells[i].speed <= 6.25)
+		var distance = Math.sqrt(Math.pow(player.cells[i].x - player.target.x,2) + Math.pow(player.cells[i].y - player.target.y, 2));
+		console.log("distance:"+distance);
+		var speed = 5*c.slowBase/player.cells[i].mass;
+		console.log("speed:"+speed);
+		var deltaDis = (speed * c.networkUpdateFactor)/10;
+		console.log("deltaDis:"+deltaDis);
+		var deltaX;
+		var deltaY;
+		if(player.target.x >= player.cells[i].x && player.target.y <= player.cells[i].y)//第一象限
 		{
-			slowDown = util.log(player.cells[i].mass, c.slowBase) - initMassLog + 1;
+			//console.log("The 1111111111111111st xiangxian");
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
+			deltaX = ((player.target.x - player.cells[i].x)/distance) * deltaDis;
+			deltaY = ((player.cells[i].y - player.target.y)/distance) * deltaDis;
+			//console.log("deltaX:"+deltaX);
+			//console.log("deltaY:"+deltaY);
+			if(player.cells[i].x + deltaX >= c.gameWidth)//边界保护
+			{
+				player.cells[i].x = c.gameWidth - 10;
+			}
+			else
+			{
+				player.cells[i].x += deltaX;
+			}
+			if(player.cells[i].y - deltaY <= 0)//边界保护
+			{
+				player.cells[i].y = 10;
+			}
+			else
+			{
+				player.cells[i].y -= deltaY;
+			}
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
-		var deltaY = player.cells[i].speed*Math.sin(deg)/slowDown;
-		var deltaX = player.cells[i].speed*Math.cos(deg)/slowDown;
-		if(player.cells[i].speed > 6.25)
+		else if(player.target.x <= player.cells[i].x && player.target.y <= player.cells[i].y)//第二象限
 		{
-			player.cells[i].speed -= 0.5;
+			//console.log("The 22222222222222nd xiangxian");
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
+			deltaX = ((player.cells[i].x - player.target.x)/distance) * deltaDis;
+			deltaY = ((player.cells[i].y - player.target.y)/distance) * deltaDis;
+			//console.log("deltaX:"+deltaX);
+			//console.log("deltaY:"+deltaY);
+			if(player.cells[i].x - deltaX <= 0)
+			{
+				player.cells[i].x = 10;
+			}
+			else
+			{
+				player.cells[i].x -= deltaX;
+			}
+			if(player.cells[i].y - deltaY <= 0)
+			{
+				player.cells[i].y = 10;
+			}
+			else
+			{
+				player.cells[i].y -= deltaY;
+			}
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
-		if(dist < (50 + player.cells.radius)){
-			deltaY *= dist / (50 + player.cells[i].radius);
-			deltaX *= dist / (50 + player.cells[i].radius);
+		else if(player.target.x < player.cells[i].x && player.target.y >= player.cells[i].y)//第三象限
+		{
+			//console.log("The 3333333333333rd xiangxian");
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
+			deltaX = ((player.cells[i].x - player.target.x)/distance) * deltaDis;
+			deltaY = ((player.target.y - player.cells[i].y)/distance) * deltaDis;
+			//console.log("deltaX:"+deltaX);
+			//console.log("deltaY:"+deltaY);
+			if(player.cells[i].x - deltaX <= 0)
+			{
+				player.cells[i].x = 10;
+			}
+			else
+			{
+				player.cells[i].x -= deltaX;
+			}
+			if(player.cells[i].y + deltaY >= c.gameHeight)
+			{
+				player.cells[i].y = c.gameHeight - 10;
+			}
+			else
+			{
+				player.cells[i].y += deltaY;
+			}
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
 		}
-		if (!isNaN(deltaY)) {
-            player.cells[i].y += deltaY;
-        }
-        if (!isNaN(deltaX)) {
-            player.cells[i].x += deltaX;
-        }
-        for(var j=0; j<player.cells.length; j++) {
-            if(j != i && player.cells[i] !== undefined) {
-                var distance = Math.sqrt(Math.pow(player.cells[j].y-player.cells[i].y,2) + Math.pow(player.cells[j].x-player.cells[i].x,2));
-                var radiusTotal = (player.cells[i].radius + player.cells[j].radius);
-                if(distance < radiusTotal) {
-                    if(player.lastSplit > new Date().getTime() - 1000 * c.mergeTimer) {
-                        if(player.cells[i].x < player.cells[j].x) {
-                            player.cells[i].x--;
-                        } else if(player.cells[i].x > player.cells[j].x) {
-                            player.cells[i].x++;
-                        }
-                        if(player.cells[i].y < player.cells[j].y) {
-                            player.cells[i].y--;
-                        } else if((player.cells[i].y > player.cells[j].y)) {
-                            player.cells[i].y++;
-                        }
-                    }
-                    else if(distance < radiusTotal / 1.75) {
-                        player.cells[i].mass += player.cells[j].mass;
-                        player.cells[i].radius = util.massToRadius(player.cells[i].mass);
-                        player.cells.splice(j, 1);
-                    }
-                }
-            }
-        }
-        if(player.cells.length > i) {
-            var borderCalc = player.cells[i].radius / 3;
-            if (player.cells[i].x > c.gameWidth - borderCalc) {
-                player.cells[i].x = c.gameWidth - borderCalc;
-            }
-            if (player.cells[i].y > c.gameHeight - borderCalc) {
-                player.cells[i].y = c.gameHeight - borderCalc;
-            }
-            if (player.cells[i].x < borderCalc) {
-                player.cells[i].x = borderCalc;
-            }
-            if (player.cells[i].y < borderCalc) {
-                player.cells[i].y = borderCalc;
-            }
-            x += player.cells[i].x;
-            y += player.cells[i].y;
-        }
+		else   //第四象限
+		{
+			//console.log("The 444444444444444444th xiangxian");
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
+			deltaX = ((player.target.x - player.cells[i].x)/distance) * deltaDis;
+			deltaY = ((player.target.y - player.cells[i].y)/distance) * deltaDis;
+			//console.log("deltaX:"+deltaX);
+			//console.log("deltaY:"+deltaY);
+			if(player.cells[i].x + deltaX >= c.gameWidth)
+			{
+				player.cells[i].x = c.gameWidth - 10;
+			}
+			else
+			{
+				player.cells[i].x += deltaX;
+			}
+			if(player.cells[i].y + deltaY >= c.gameHeight)
+			{
+				player.cells[i].y = c.gameHeight - 10;
+			}
+			else
+			{
+				player.cells[i].y += deltaY;
+			}
+			//console.log("player.cells[i].x:"+player.cells[i].x);
+			//console.log("player.cells[i].y:"+player.cells[i].y);
+		}
     }
-    player.x = x/player.cells.length;
-    player.y = y/player.cells.length;
-	*/
+	//player.x = player.target.x;
+    //player.y = player.target.y;
 }
 
 server.all("/*", checker);
@@ -546,9 +677,10 @@ server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
 
-setInterval(sendUpdates, 25);
+setInterval(gameLoop, 40);
+setInterval(sendUpdates, 1000/c.networkUpdateFactor);
 setInterval(elementsBalance, 3000);
-setInterval(movePlayer, 1000);
+
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
