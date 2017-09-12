@@ -5,10 +5,10 @@ var GameObject = require("./game_object.js").GameObject;
 var SceneObject = require("./game_object.js").SceneObject;
 var gameRefs = [];
 var curGameId = 0;
-var minX = -cfg.gameWidth / 2;
-var maxX = -minX;
-var minY = -cfg.gameHeight / 2;
-var maxY = -minY;
+var minX = 0;
+var maxX = cfg.gameWidth;
+var minY = 0;
+var maxY = cfg.gameHeight;
 
 var OBJECT_TYPE = {
     PLAYER: 1,
@@ -34,6 +34,14 @@ function PlayerGroup(_x, _y, _player)
             rightDown: [0, 0],
         },
     };
+}
+
+function Exit(_gameId, playerId)
+{
+    var game = gameRefs[_gameId];
+    if (!game) return;
+
+    delete game.moveables[playerId];
 }
 
 function Game(_id)
@@ -209,6 +217,8 @@ function Move(_gameId, _playerId, dirX, dirY)
     if (!game) {
         return;
     }
+    dirX = parseInt(dirX * 5000);
+    dirY = parseInt(dirY * 5000);
     
     var pg = game.moveables[_playerId];
     if (!pg) return;
@@ -451,6 +461,7 @@ function Update(_gameId)
         UpdatePlayerGroupCenter(game.moveables[gid]);
         pkg.scenes[gid] = ExtractPlayerScene(game, scene.leftUp, scene.rightDown);
     }
+    FillEatable();
     return pkg;
 }
 
@@ -503,23 +514,33 @@ exports.Move = Move;
 exports.UpdateSceneBound = UpdateSceneBound;
 exports.Split = Split;
 exports.Update = Update;
+exports.Exit = Exit;
 exports.Eject = Eject;
 
 function TestFoo()
 {
     var ret = Join();
     var game = gameRefs[0];
-    cfg.maxFood = 10;
+    cfg.maxFood = 0;
     cfg.maxVirus= 0;
     FillEatable(game);
     UpdateSceneBound(0, 0, [minX, maxY], [maxX, minY]);
     Move(0, 0, 100, 0);
 
     var player = game.moveables[0].players[0];
-    console.log(player);
-    ret=DoMultiSplit(player);
-    console.log(ret);
-    console.log(player);
+    Join();
+    Move(0,1,0,0);
+    console.log(game);
+    var p2 = game.moveables[1].players[0];
+    p2.radius /=2;
+    p2.x = player.x + 40;
+    p2.y=player.y;
+    console.log(p2.x+":"+p2.y);
+    for(var i=0;i<10;i++){
+        ret=Update(0);
+        console.log(player.x+":"+player.y+":"+player.radius+"="+player.weight);
+        console.log(ret.dead);
+    }
 }
 
-//TestFoo();
+TestFoo();
