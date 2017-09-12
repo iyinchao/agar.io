@@ -5,20 +5,24 @@ function GameObject(_id, _type, _mass, _radius)
         type: _type,
         weight: _mass,
         radius: _radius,
+        nickName: null,
+        color: 0,
         speed: 0,
         x: 0,
         y: 0,
     };
 }
 
-function SceneObject(_id, _type, _x, _y, _r)
+function SceneObject(obj)
 {
     return {
-        id: _id,
-        type: _type,
-        x: _x,
-        y: _y,
-        r: _r,
+        id: obj.id,
+        type: obj.type,
+        color: obj.color,
+        nickName: obj.nickName,
+        x: obj.x,
+        y: obj.y,
+        r: obj.radius,
     };
 }
 

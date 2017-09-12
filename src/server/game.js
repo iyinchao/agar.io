@@ -106,7 +106,7 @@ function GenerateGameObject(type)
         break;
     }
     // TODO: position dont collide with others
-    var pos = util.RandomPosition(obj.radius);
+    var pos = util.randomPosition(obj.radius);
     obj.x = parseInt(pos.x + minX);
     obj.y = parseInt(pos.y + minY);
 
@@ -150,12 +150,13 @@ function FindGetIdleGameObject()
     return game;
 }
 
-function Join()
+function Join(nickName)
 {
     var game = FindGetIdleGameObject();
     var player = GenerateGameObject(OBJECT_TYPE.PLAYER);
 
     player.id = game.curObjId++;
+    player.nickName = nickName;
     game.moveables[player.id] = new PlayerGroup(player.x, player.y, player);
 
     return {
@@ -423,14 +424,14 @@ function ExtractPlayerScene(game, leftTop, rightDown)
         for (var i = 0; i < pg.players.length; ++i) {
             var p = pg.players[i];
             if (__CheckInBound(p.x, p.y, leftTop, rightDown)) {
-                scene.push(new SceneObject(p.id, p.type, p.x, p.y, p.radius));
+                scene.push(new SceneObject(p));
             }
         }
     }
     for (var objId in game.others) {
         var obj = game.others[objId];
         if (__CheckInBound(obj.x, obj.y, leftTop, rightDown)) {
-            scene.push(new SceneObject(obj.id, obj.type, obj.x, obj.y, obj.radius));
+            scene.push(new SceneObject(obj));
         }
     }
     return scene;
@@ -461,7 +462,7 @@ function Update(_gameId)
         UpdatePlayerGroupCenter(game.moveables[gid]);
         pkg.scenes[gid] = ExtractPlayerScene(game, scene.leftUp, scene.rightDown);
     }
-    FillEatable();
+    FillEatable(game);
     return pkg;
 }
 
