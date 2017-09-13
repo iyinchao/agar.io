@@ -2,8 +2,9 @@ var cfg = require('../../config/config.json');
 var util = require("./util");
 var logger = require("./logger").logger();
 var GameObject = require("./game_object.js").GameObject;
-var SceneObject = require("./game_object.js").SceneObject;
+var NewSceneObject = require("./game_object.js").NewSceneObject;
 var ScenePlayer = require("./game_object.js").ScenePlayer;
+var SceneCell = require("./game_object.js").SceneCell;
 var gameRefs = [];
 var curGameId = 0;
 var minX = 0;
@@ -30,6 +31,7 @@ function PlayerGroup(_x, _y, _name, _player)
         center: [_x, _y],
         dir: [0, 0],
         players: [_player],
+        change: true,
         color: util.randomInRange(1, 359),
         name: _name,
         scene: {
@@ -53,6 +55,8 @@ function Game(_id)
         id: _id,
         moveables: {},
         others: {},
+        changeObj: [],
+        changePlayer: {},
         curObjId: 0,
         foodCount: 0,
         virusCount: 0,
@@ -123,6 +127,7 @@ function FillEatable(game)
         food.id = game.curObjId++;
         game.others[food.id] = food;
         game.foodCount++;
+        game.changeObj.push(new NewSceneObject(food));
     }
 
     while (game.virusCount < cfg.maxVirus) {
@@ -130,6 +135,7 @@ function FillEatable(game)
         virus.id = game.curObjId++;
         game.others[virus.id] = virus;
         game.virusCount++;
+        game.changeObj.push(new NewSceneObject(virus));
     }
 }
 
@@ -160,10 +166,11 @@ function Join(nickName)
 
     player.id = game.curObjId++;
     game.moveables[player.id] = new PlayerGroup(player.x, player.y, nickName, player);
-
+    var setupObj = ExtractPlayerScene(game);
     return {
         gameId: game.id,
         playerMainId: player.id,
+        setup: setupObj,
     };
 }
 
@@ -203,7 +210,7 @@ function DoMove(player, cx, cy)
     var dx = cx - player.x, dy = cy - player.y;
 
     if (dx == 0) {
-        if (dy == 0) return;
+        if (dy == 0) return -1;
         dy = dy > 0 ? 1 : -1;
     }
 
@@ -212,6 +219,7 @@ function DoMove(player, cx, cy)
     player.y += tv[1] * player.speed * cfg.movePeriod;
     player.x = parseInt(util.MinMax(minX + player.radius, maxX - player.radius, player.x));
     player.y = parseInt(util.MinMax(minY + player.radius, maxY - player.radius, player.y));
+    return 0;
 }
 
 function Move(_gameId, _playerId, dirX, dirY)
@@ -238,18 +246,6 @@ function Move(_gameId, _playerId, dirX, dirY)
             player.speed = 0;
         }
     }
-}
-
-function UpdateSceneBound(_gameId, _playerId, leftTop, rightDown)
-{
-    var game = gameRefs[_gameId];
-    if (!game) return;
-
-    var pg = game.moveables[_playerId];
-    if (!pg) return;
-    pg.scene.leftUp = leftTop;
-    pg.scene.rightDown = rightDown;
-    return;
 }
 
 function UpdateAttr(player)
@@ -333,6 +329,7 @@ function Split(_gameId, _playerId)
         }
     }
     UpdatePlayerGroupCenter(pg);
+    pg.change = true;
 }
 
 function UpdatePosition(pg)
@@ -340,17 +337,23 @@ function UpdatePosition(pg)
     var point = DirCrossPoint(pg.center[0], pg.center[1], pg.dir[0], pg.dir[1]);
     for (var id in pg.players) {
         var player = pg.players[id];
-        DoMove(player, point[0], point[1]);
+        var iret = DoMove(player, point[0], point[1]);
+        if (!iret) {
+            pg.change = true;
+        }
     }
 }
 
-function CollideWithObject(player, obj)
+function CollideWithObject(player, obj, game)
 {
     var dis = util.Distance(player, obj);
     if (dis < player.radius && player.radius > obj.radius * cfg.sizeToEat) {
         player.weight += obj.weight;
         obj.weight = 0;
         UpdateAttr(player);
+        if (game) {
+            game.changeObj.push(new DeleteSceneObject(obj));
+        }
         if (obj.type == OBJECT_TYPE.VIRUS) {
             return DoMultiSplit(player);
         }
@@ -393,7 +396,7 @@ function DetectCollision(game)
             // collide with food, virus and mass
             for (var objID in game.others) {
                 var obj = game.others[objID];
-                var ret = CollideWithObject(pg.players[i], obj);
+                var ret = CollideWithObject(pg.players[i], obj, game);
                 if (ret.length > 0) {
                     cell.concat(ret);
                 }
@@ -418,35 +421,29 @@ function __CheckInBound(x, y, leftTop, rightDown)
     return (x > leftTop[0] && x < rightDown[0] && y < leftTop[1] && y > rightDown[1]);
 }
 
-function ExtractPlayerScene(game, leftTop, rightDown)
+function ExtractPlayerScenePlayers(game)
 {
-    var scene = [];
+    var objs = [];
     for (var gid in game.moveables) {
         var pg = game.moveables[gid];
         if (pg.players.length == 0) continue;
         var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg);
         for (var i = 0; i < pg.players.length; ++i) {
-            var p = pg.players[i];
-            if (__CheckInBound(p.x, p.y, leftTop, rightDown)) {
-                scenePlayer.cells.push({
-                    id: i,
-                    x: p.x,
-                    y: p.y,
-                    r: p.radius,
-                });
-            }
+            scenePlayer.cells.push(pg.players[i]);
         }
-        if (scenePlayer.cells.length > 0) {
-            scene.push(scenePlayer);
-        }
+        objs.push(scenePlayer);
     }
-    for (var objId in game.others) {
-        var obj = game.others[objId];
-        if (__CheckInBound(obj.x, obj.y, leftTop, rightDown)) {
-            scene.push(new SceneObject(obj));
-        }
+    return objs;
+}
+
+function ExtractPlayerScene(game)
+{
+    var objs = ExtractPlayerScenePlayers(game);
+    for (var id in game.others) {
+        var obj = game.others[id];
+        objs.push(new NewSceneObject(obj));
     }
-    return scene;
+    return objs;
 }
 
 function Update(_gameId)
@@ -465,17 +462,15 @@ function Update(_gameId)
     for (var i = 0; i < dead.length; ++i) {
         delete game.moveables[dead[i]];
     }
-    var pkg = {
-        "scenes": {},
-        "dead": dead,
-    };
     for (gid in game.moveables) {
-        var scene = game.moveables[gid].scene;
         UpdatePlayerGroupCenter(game.moveables[gid]);
-        pkg.scenes[gid] = ExtractPlayerScene(game, scene.leftUp, scene.rightDown);
     }
+    var allPlayers = ExtractPlayerScenePlayers(game);
+    game.changeObj = game.changeObj.concat(allPlayers);
     FillEatable(game);
-    return pkg;
+    var allObjs = game.changeObj;
+    game.changeObj = [];
+    return allObjs;
 }
 
 function DoEject(player, cosx, sinx)
@@ -517,14 +512,15 @@ function Eject(_gameId, _playerId)
         if (mass) {
             mass.id = game.curObjId;
             game.others[game.curObjId++] = mass;
+            game.changeObj.push(new NewSceneObject(mass));
         }
     }
     UpdatePlayerGroupCenter(pg);
+    pg.change = true;
 }
 
 exports.Join = Join;
 exports.Move = Move;
-exports.UpdateSceneBound = UpdateSceneBound;
 exports.Split = Split;
 exports.Update = Update;
 exports.Exit = Exit;
@@ -532,28 +528,17 @@ exports.Eject = Eject;
 
 function TestFoo()
 {
-    var ret = Join();
+    var ret = Join('pp');
     var game = gameRefs[0];
-    cfg.maxFood = 0;
-    cfg.maxVirus= 0;
+    cfg.maxFood = 1;
+    cfg.maxVirus= 1;
     FillEatable(game);
-    UpdateSceneBound(0, 0, [minX, maxY], [maxX, minY]);
-    Move(0, 0, 100, 0);
-
-    var player = game.moveables[0].players[0];
-    Join();
-    Move(0,1,0,0);
-    console.log(game);
-    var p2 = game.moveables[1].players[0];
-    p2.radius /=2;
-    p2.x = player.x + 40;
-    p2.y=player.y;
-    console.log(p2.x+":"+p2.y);
-    for(var i=0;i<10;i++){
-        ret=Update(0);
-        console.log(player.x+":"+player.y+":"+player.radius+"="+player.weight);
-        console.log(ret.dead);
-    }
+    Move(0, 0, 0.5, 0.5);
+    
+    ret = Update(0);
+    console.log(ret);
+    ret = Update(0);
+    console.log(ret);
 }
 
-TestFoo();
+ //TestFoo();

@@ -15,15 +15,25 @@ function GameObject(_id, _type, _mass, _radius)
     };
 }
 
-function SceneObject(obj)
+function NewSceneObject(obj)
 {
     return {
         id: obj.id,
         t: obj.type,
+        op: 1,
         hue: obj.color,
         x: obj.x,
         y: cfg.gameHeight - obj.y,
         r: obj.radius,
+    };
+}
+
+function DeleteSceneObject(obj)
+{
+    return {
+        id: obj.id,
+        t: obj.type,
+        op: -1,
     };
 }
 
@@ -40,6 +50,18 @@ function ScenePlayer(_t, pg)
     };
 }
 
+function SceneCell(player, _id)
+{
+    return {
+        id: _id,
+        x: player.x,
+        y: player.y,
+        r: player.radius,
+    };
+}
+
 exports.GameObject = GameObject;
-exports.SceneObject = SceneObject;
+exports.NewSceneObject = NewSceneObject;
+exports.DeleteSceneObject = DeleteSceneObject;
 exports.ScenePlayer = ScenePlayer;
+exports.SceneCell = SceneCell;
