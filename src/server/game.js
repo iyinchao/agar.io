@@ -3,6 +3,7 @@ var util = require("./util");
 var logger = require("./logger").logger();
 var GameObject = require("./game_object.js").GameObject;
 var SceneObject = require("./game_object.js").SceneObject;
+var ScenePlayer = require("./game_object.js").ScenePlayer;
 var gameRefs = [];
 var curGameId = 0;
 var minX = 0;
@@ -22,13 +23,15 @@ function GameLog(_gameId, _playerId, msg)
     logger.info("game [" + _gameId + "](" + _playerId + "): " + msg);
 }
 
-function PlayerGroup(_x, _y, _player)
+function PlayerGroup(_x, _y, _name, _player)
 {
     return {
         id: _player.id,
         center: [_x, _y],
         dir: [0, 0],
         players: [_player],
+        color: util.randomInRange(1, 359),
+        name: _name,
         scene: {
             leftUp: [0, 0],
             rightDown: [0, 0],
@@ -156,8 +159,7 @@ function Join(nickName)
     var player = GenerateGameObject(OBJECT_TYPE.PLAYER);
 
     player.id = game.curObjId++;
-    player.nickName = nickName;
-    game.moveables[player.id] = new PlayerGroup(player.x, player.y, player);
+    game.moveables[player.id] = new PlayerGroup(player.x, player.y, nickName, player);
 
     return {
         gameId: game.id,
@@ -219,7 +221,7 @@ function Move(_gameId, _playerId, dirX, dirY)
         return;
     }
     dirX = parseInt(dirX * 5000);
-    dirY = parseInt(dirY * 5000);
+    dirY = cfg.gameHeight - parseInt(dirY * 5000);
     
     var pg = game.moveables[_playerId];
     if (!pg) return;
@@ -421,11 +423,21 @@ function ExtractPlayerScene(game, leftTop, rightDown)
     var scene = [];
     for (var gid in game.moveables) {
         var pg = game.moveables[gid];
+        if (pg.players.length == 0) continue;
+        var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg);
         for (var i = 0; i < pg.players.length; ++i) {
             var p = pg.players[i];
             if (__CheckInBound(p.x, p.y, leftTop, rightDown)) {
-                scene.push(new SceneObject(p));
+                scenePlayer.cells.push({
+                    id: i,
+                    x: p.x,
+                    y: p.y,
+                    r: p.radius,
+                });
             }
+        }
+        if (scenePlayer.cells.length > 0) {
+            scene.push(scenePlayer);
         }
     }
     for (var objId in game.others) {

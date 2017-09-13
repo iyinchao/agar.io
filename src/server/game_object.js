@@ -1,3 +1,6 @@
+var cfg = require('../../config/config.json');
+var util = require("./util");
+
 function GameObject(_id, _type, _mass, _radius)
 {
     return {
@@ -5,8 +8,7 @@ function GameObject(_id, _type, _mass, _radius)
         type: _type,
         weight: _mass,
         radius: _radius,
-        nickName: null,
-        color: 0,
+        color: util.randomInRange(1, 359),
         speed: 0,
         x: 0,
         y: 0,
@@ -17,14 +19,27 @@ function SceneObject(obj)
 {
     return {
         id: obj.id,
-        type: obj.type,
-        color: obj.color,
-        nickName: obj.nickName,
+        t: obj.type,
+        hue: obj.color,
         x: obj.x,
-        y: obj.y,
+        y: cfg.gameHeight - obj.y,
         r: obj.radius,
+    };
+}
+
+function ScenePlayer(_t, pg)
+{
+    return {
+        id: pg.id,
+        t: _t,
+        name: pg.name,
+        x: pg.center[0],
+        y: pg.center[1],
+        hue: pg.color,
+        cells: [],
     };
 }
 
 exports.GameObject = GameObject;
 exports.SceneObject = SceneObject;
+exports.ScenePlayer = ScenePlayer;
