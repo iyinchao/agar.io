@@ -23,6 +23,7 @@ var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 //zxt
 var server = new express();
 //server.listen(8080);
+var game = require('./game');
 
 var logger_style = {
     level: 'auto',
@@ -239,38 +240,61 @@ function addMassFood(numToAdd)
 
 io.on('connection', function(socket){
 		console.log('[INFO] A user connected!!!!');
-		var type = 'player';//socket.handshake.query.type;
-		var radius = util.massToRadius(c.defaultPlayerMass);
-		var position = util.randomPosition(radius);
-		var cells = [];
-		var massTotal = 0;
-		if(type === 'player')
-		{
-			cells = [{
-				mass: c.defaultPlayerMass,
-				x: position.x,
-				y: position.y,
-				radius: radius
-			}];
-			massTotal = c.defaultPlayerMass;
-		}
+		//var type = 'player';//socket.handshake.query.type;
+		//var radius = util.massToRadius(c.defaultPlayerMass);
+		//var position = util.randomPosition(radius);
+		//var cells = [];
+		//var massTotal = 0;
+		//if(type === 'player')
+		//{
+			//cells = [{
+				//mass: c.defaultPlayerMass,
+				//x: position.x,
+				//y: position.y,
+				//radius: radius
+			//}];
+			//massTotal = c.defaultPlayerMass;
+		//}
 
-		var currentPlayer = {
-			id: socket.id,
-			x: position.x,
-			y: position.y,
-			w: c.defaultPlayerMass,
-			h: c.defaultPlayerMass,
-			cells: cells,
-			massTotal: massTotal,
-			hue: Math.round(Math.random() * 360),
-			type: type,
-			lastHeartbeat: new Date().getTime(),
-			target: {
-				x: 0,
-				y: 0
+		//var currentPlayer = {
+		//	id: socket.id,
+		//	x: position.x,
+		//	y: position.y,
+		//	w: c.defaultPlayerMass,
+		//	h: c.defaultPlayerMass,
+		//	cells: cells,
+		//	massTotal: massTotal,
+		//	hue: Math.round(Math.random() * 360),
+			//type: type,
+			//lastHeartbeat: new Date().getTime(),
+			//target: {
+			//	x: 0,
+			//	y: 0
+		//	}
+		//};
+		
+		socket.on('join', function(player){
+			var ret_value = game.Join(player.name);
+			socket.emit('joined', ret_value);
+			console.log("Player "+player.name+" joined");
+			
+			socket.emit('scene-setup',"hello,world,this is test");
+		});
+		
+		socket.on('op', function(op){
+			if(op.t === "mv")//player move
+			{
+				game.Move(op.gameID, op.userID, op.x, op.y);
 			}
-		};
+			else if(op.t === "w")//split
+			{
+				game.Eject(op.gameID, op.userID);
+			}
+			else if(op.t === "space")//space
+			{
+				game.Split(op.gameID, op.userID);
+			}
+		});
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
 			player.id = socket.id;
@@ -753,10 +777,10 @@ server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
 
-setInterval(gameLoop, 40);
-setInterval(sendUpdates, 1000/c.networkUpdateFactor);
-setInterval(elementsBalance, 3000);
-setInterval(massLoss, 1000);
+//setInterval(gameLoop, 40);
+//setInterval(sendUpdates, 1000/c.networkUpdateFactor);
+//setInterval(elementsBalance, 3000);
+//setInterval(massLoss, 1000);
 
 
 var ipaddress = '0.0.0.0';
