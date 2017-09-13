@@ -71,8 +71,8 @@ class Overlay {
       this.game.$myPlayerName = this.refs.textNick.value
       this.game.state.start('game')
       e.target.blur()
-      //this.hide(this.refs.mask)
-      //this.hide(this.refs.panelGame)
+      // this.hide(this.refs.mask)
+      this.hide(this.refs.panelGame)
     }
   }
 }

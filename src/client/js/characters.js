@@ -1,17 +1,13 @@
 import TinyColor from 'tinycolor2'
+import Pixi from 'pixi'
 
 export class Character {
   constructor (options) {
     const defaultOptions = {}
-    Object.assign({}, defaultOptions, options)
-    this.game = options.game
-
-    this.id = options.id
-    this.radius = options.radius
-    this.x = options.x
-    this.y = options.y
-    this.hue = options.hue
-
+    const o = Object.assign({}, defaultOptions, options)
+    Object.keys(o).forEach((key) => {
+      this[key] = o[key]
+    })
   }
   hueToHex (hue) {
     return parseInt(TinyColor({h: hue, s: 100, v: 100}).toHex(), 16)
@@ -42,52 +38,89 @@ export class Cell extends Character {
 export class Player extends Character {
   constructor (options) {
     super(options)
-    this.name = options.name
     this._hexColor = this.hueToHex(this.hue)
     this._hexFillColor = parseInt(TinyColor({h: this.hue, s: 100, v: 100}).darken(10).toHex(), 16)
-    this.cells = []
 
-    this.cells = options.cells.map((cell, index) => {
-      return new Cell({
-        id: this.id,
-        _cellId: index,
-        hue: this.hue,
-        _hexColor: this._hexColor,
-        _hexFillColor: this._hexFillColor,
-        radius: cell.radius,
-        game: this.game,
-        x: cell.x,
-        y: cell.y
-      })
-    })
+    // this.cells = []
+
+    // this.cells = options.cells.map((cell, index) => {
+    //   return new Cell({
+    //     id: this.id,
+    //     _cellId: index,
+    //     hue: this.hue,
+    //     _hexColor: this._hexColor,
+    //     _hexFillColor: this._hexFillColor,
+    //     radius: cell.radius,
+    //     game: this.game,
+    //     x: cell.x,
+    //     y: cell.y
+    //   })
+    // })
     this.text = this.game.add.text(0, 0, this.name, {
       font: 'bold 32px Arial',
       fill: '#FFF',
       stroke: '#000',
-      strokeThickness: 3
+      strokeThickness: 4
     })
     this.text.anchor.setTo(0.5)
+
+
+    this._cells = []
+    try {
+      this._cells = JSON.parse(JSON.stringify(this.cells))
+    } catch (e) {
+      // slient
+    }
+
+    Object.defineProperty(this, 'cells', {
+      get: function () {
+        return this._cells
+      },
+      set: function (value) {
+        if (Array.isArray(value)) {
+          this._cells = value
+        }
+        this._cells.forEach((cell, index) => {
+          this._cells[index].parent = this
+          this._cells[index].update = this.updateCell.bind(this._cells[index])
+        })
+      }
+    })
+
+    this.cells = this._cells
   }
   update () {
-    super.update()
-
+    let largest = 0 // Largest cell index
+    let largestR = 0
     if (this.cells && this.cells.length) {
-      let largest = 0 // Largest cell index
-      let largestR = 0
       this.cells.forEach((cell, index) => {
-        if (cell.radius > largestR) {
+        if (cell.r > largestR) {
           largest = index
+          largestR = cell.r
         }
-        this.game.$graphics.lineStyle(10, this._hexColor, 1)
-        this.game.$graphics.beginFill(this._hexFillColor, 1)
-        this.game.$graphics.drawCircle(cell.x, cell.y, cell.radius)
-        this.game.$graphics.endFill()
-        this.game.$graphics.lineWidth = 0
       })
-      this.text.x = this.cells[largest].x
-      this.text.y = this.cells[largest].y
-      this.text.fontSize = this.cells[largest].radius > 60 ? 32 : this.cells[largest].radius / 2
     }
+
+    this.text.x = this.cells[largest].x
+    this.text.y = this.cells[largest].y
+    this.text.fontSize = this.cells[largest].r > 60 ? 32 : this.cells[largest].r / 2
+
+      // let largest = 0 // Largest cell index
+      // let largestR = 0
+    //   this.cells.forEach((cell, index) => {
+    //     if (cell.radius > largestR) {
+    //       largest = index
+    //     }
+    //     this.game.$graphics.lineStyle(10, this._hexColor, 1)
+    //     this.game.$graphics.beginFill(this._hexFillColor, 1)
+    //     this.game.$graphics.drawCircle(cell.x, cell.y, cell.radius)
+    //     this.game.$graphics.endFill()
+    //     this.game.$graphics.lineWidth = 0
+    //   })
+    //   this.text.x = this.cells[largest].x
+    //   this.text.y = this.cells[largest].y
+    //   this.text.fontSize = this.cells[largest].radius > 60 ? 32 : this.cells[largest].radius / 2
+    // }
     // Draw self
     // this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
     // this.game.$graphics.beginFill(0xa92cc8, 1)
@@ -98,6 +131,13 @@ export class Player extends Character {
     // this.text.fontSize = this.radius > 60 ? 32 : this.r / 2
     // Draw cells
   }
+  updateCell () {
+    this.parent.game.$graphics.lineStyle(10, this.parent._hexColor, 1)
+    this.parent.game.$graphics.beginFill(this.parent._hexFillColor, 1)
+    this.parent.game.$graphics.drawCircle(this.x, this.y, this.r)
+    this.parent.game.$graphics.endFill()
+    this.parent.game.$graphics.lineWidth = 0
+  }
   destroy () {
     super.destroy()
   }
@@ -107,24 +147,48 @@ export class Food extends Character {
   constructor (options) {
     super(options)
     this._hexColor = this.hueToHex(this.hue)
+    this._polygon = null
   }
   update () {
-    super.update()
     // this.game.$graphics.beginFill(0xa92cc8, 1)
     // this.game.$graphics.drawCircle(this.position.x, this.position.y, 20)
     // this.game.$graphics.endFill()
     // console.log(this._hexColor)
     // this.game.$graphics.beginFill(0xa92cc8, 1)
     // this.game.$graphics.drawCircle(this.x, this.y, 20)
-    this.game.$graphics.beginFill(this._hexColor)
-    this.game.$graphics.drawCircle(this.x, this.y, this.radius)
     // this.game.drawCircle(this.x, this.y, this.radius, 6)
-    this.game.$graphics.endFill()
+
+    // this.game.$graphics.beginFill(this._hexColor)
+    // this.game.drawCircle(this.x, this.y, this.r, 6)
+
+    this.game.$graphics.beginFill(this._hexColor)
+    this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
+
+    // Generate polygon points
+
+    // this.game.$graphics.beginFill(this._hexColor)
+    // if (!this._polygon) {
+    //   let edges = 6
+    //   let polygonPoints = []
+    //   for (let i = 0; i <= edges; i++) {
+    //     let angle = Math.PI / 180 * (360 / edges) * i
+    //     polygonPoints.push(this.x + Math.cos(angle) * this.r)
+    //     polygonPoints.push(this.y + Math.sin(angle) * this.r)
+    //   }
+    //   this._polygon = new Pixi.Polygon(polygonPoints)
+    // }
+
+    // this.game.$graphics.drawShape(this._polygon)
   }
 }
+
 
 export class Virus extends Character {
   constructor (options) {
     super(options)
+    this._hexColor = this.hueToHex(110)
+  }
+  update () {
+
   }
 }

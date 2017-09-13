@@ -22,8 +22,11 @@ export class WS {
       }
     )
   }
-  on () {
-    return this.socket.on
+  on (type, cb) {
+    return this.socket.on(type, cb)
+  }
+  emit (type, data) {
+    return this.socket.emit(type, data)
   }
   connect () {
     this.socket.open()
