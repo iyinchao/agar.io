@@ -14,26 +14,23 @@ let ay = 0
 
 const States = {
   game: {
-    _updateA: throttle(function update () {
-      a = a + 100
-    }, 500),
     preload () {
+      this.g = this.game
       this.load.image('background', require('@/assets/img/tile.png'))
     },
     create () {
-      this.game.scale.setResizeCallback(Callbacks.resize, this)
-      this.game.input.mouse.onMouseMove = Callbacks.mouseMove
-      this.game.input.keyboard.onUpCallback = Callbacks.keyboardUp
-      this.game.input.keyboard.onDownCallback = Callbacks.keyboardDown
-      this.game.input.keyboard.onPressCallback = Callbacks.keyboardPress
+      this.g.scale.setResizeCallback(Callbacks.resize, this)
+      this.g.input.mouse.onMouseMove = Callbacks.mouseMove
+      this.g.input.keyboard.onUpCallback = Callbacks.keyboardUp
+      this.g.input.keyboard.onDownCallback = Callbacks.keyboardDown
+      this.g.input.keyboard.onPressCallback = Callbacks.keyboardPress
 
-      this.game.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
-      this.game.$sprites['background'] = this.add.tileSprite(
+      this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
+      this.g.$sprites['background'] = this.add.tileSprite(
         0, 0, gameConfig.world.width, gameConfig.world.height,
         'background')
-      // this.game.world.setBounds(0, 0, this.game.scale.width, this.game.scale.height)
 
-      this.game.$graphics = this.game.add.graphics(0, 0)
+      this.g.$graphics = this.g.add.graphics(0, 0)
 
 
       // for (let i = 0; i < 1000; i++) {
@@ -102,26 +99,6 @@ const States = {
             })
           }
         })
-        // const p = e.visibleCells[0]
-        // if (!p) { return }
-        // if (player) {
-        //   //
-        //   player.x = p.cells[0].x
-        //   player.y = p.cells[0].y
-        //   player.radius = p.cells[0].radius
-        // } else {
-        //   this.game.addCharacter('player', {
-        //     id: this.game.$myPlayer,
-        //     x: p.x,
-        //     y: p.y,
-        //     radius: p.radius
-        //   })
-        // }
-
-        // this.game.foodList = []
-        // this.game.foodList = e.visibleFood
-        // this.game.playerList = []
-        // this.game.playerList = e.visibleCells
       })
 
       this.game.$ws.connect()
@@ -148,20 +125,15 @@ const States = {
       // })
     },
     update () {
-      this.game.$graphics.clear()
-      this.game.$renderList = []
+      this.g.$graphics.clear()
+
+      this.g.$renderList = []
 
       let camX = 0
       let camY = 0
 
       if (this.game.$myPlayerId) {
         const player = this.game.getCharacter('player', this.game.$myPlayerId)
-
-      // a += 10
-      // player.x = a
-      // player.cells.forEach((cell) => {
-      //   cell.x = a
-      // })
 
         camX = player.x - this.game.scale.width / 2
         camY = player.y - this.game.scale.height / 2
@@ -258,15 +230,13 @@ class Game extends Phaser.Game {
     this.$playerList = new Map()
     this.$foodList = new Map()
     this.$virusList = new Map()
+    this.$massFoodList = new Map()
     this.$renderList = []
     this.$myPlayerId = null
 
     this.state.add('game', States.game)
     // this.state.start('game')
 
-    // this.foodList = []
-    // this.playerList = []
-    // this.me = null
   }
   drawCircle (x, y, r, edges = 40) {
     this.$graphics.moveTo(x + r, y)
@@ -383,12 +353,6 @@ class Game extends Phaser.Game {
 
     return Obj
   }
-  // updateCharacter ()
-  // cullAndSortZ () {
-    // const foodList = []
-    // const virusList = []
-    // const playerList = []
-  // }
   cullScene () {
     this.$foodList.forEach((food) => {
       if (this.isInView(food)) {
@@ -427,9 +391,6 @@ class Game extends Phaser.Game {
     }
 
     return rect
-  }
-  checkInView () {
-
   }
 }
 
