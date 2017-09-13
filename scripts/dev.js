@@ -46,7 +46,10 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
   })
 
   const hotMiddleware = require('webpack-hot-middleware')(compiler, {
-    log: false
+    log: false,
+    // To fix HMR ERR_INCOMPLETE_CHUNKED_ENCODING error:
+    // see: https://github.com/glenjamin/webpack-hot-middleware/issues/210#issuecomment-305624051
+    heartbeat: 2000
   })
 
   compiler.plugin('compilation', function (compilation) {

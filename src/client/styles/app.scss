@@ -1,16 +1,16 @@
 @import 'variables';
 @import 'overlay';
 
-@font-face {
-	font-family: 'GAMECUBEN';
-	src: url('../assets/cell.eot');
-	src: url('../assets/cell.eot?#iefix') format('embedded-opentype'),
-		url('../assets/cell.woff') format('woff'),
-		url('../assets/cell.ttf') format('truetype'),
-		url('../assets/cell.svg#GAMECUBENDualSet') format('svg');
-	font-weight: normal;
-	font-style: normal;
-}
+// @font-face {
+// 	font-family: 'GAMECUBEN';
+// 	src: url('../assets/cell.eot');
+// 	src: url('../assets/cell.eot?#iefix') format('embedded-opentype'),
+// 		url('../assets/cell.woff') format('woff'),
+// 		url('../assets/cell.ttf') format('truetype'),
+// 		url('../assets/cell.svg#GAMECUBENDualSet') format('svg');
+// 	font-weight: normal;
+// 	font-style: normal;
+// }
 
 body {
   // Do some reset here.
@@ -36,7 +36,6 @@ button.button {
   outline: none;
   cursor: pointer;
   transition: all 200ms;
-  font-family: 'GAMECUBEN';
   &:active {
     box-shadow: $boxShadow1;
   }
