@@ -24,6 +24,7 @@ var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 var server = new express();
 //server.listen(8080);
 var game = require('./game');
+var activeGames = []; //用来保存所有的游戏场景id
 
 var logger_style = {
     level: 'auto',
@@ -240,45 +241,39 @@ function addMassFood(numToAdd)
 
 io.on('connection', function(socket){
 		console.log('[INFO] A user connected!!!!');
-		//var type = 'player';//socket.handshake.query.type;
-		//var radius = util.massToRadius(c.defaultPlayerMass);
-		//var position = util.randomPosition(radius);
-		//var cells = [];
-		//var massTotal = 0;
-		//if(type === 'player')
-		//{
-			//cells = [{
-				//mass: c.defaultPlayerMass,
-				//x: position.x,
-				//y: position.y,
-				//radius: radius
-			//}];
-			//massTotal = c.defaultPlayerMass;
-		//}
-
-		//var currentPlayer = {
-		//	id: socket.id,
-		//	x: position.x,
-		//	y: position.y,
-		//	w: c.defaultPlayerMass,
-		//	h: c.defaultPlayerMass,
-		//	cells: cells,
-		//	massTotal: massTotal,
-		//	hue: Math.round(Math.random() * 360),
-			//type: type,
-			//lastHeartbeat: new Date().getTime(),
-			//target: {
-			//	x: 0,
-			//	y: 0
-		//	}
-		//};
+		var currentPlayer = {
+			nickname: "jack"
+		};
 		
 		socket.on('join', function(player){
-			var ret_value = game.Join(player.name);
-			socket.emit('joined', ret_value);
-			console.log("Player "+player.name+" joined");
-			
-			socket.emit('scene-setup',"hello,world,this is test");
+			var ret_value = game.Join(player.nickname);
+			currentPlayer = player;
+			socket.emit('joined', {gameID: ret_value.gameId, userID:ret_value.playerMainId});
+			console.log("Player "+player.nickname+" joined");
+			socket.emit('scene-setup',game.Join(player.nickname));
+			sockets[socket.id] = socket; //将玩家的socket记录下来
+			if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
+			{
+				console.log("1111111socket.id: "+socket.id);
+				console.log("1111111gameId: "+ret_value.gameId);
+				console.log("1111111playerID: "+ret_value.playerMainId);
+				var player_and_socket = [];
+				player_and_socket.push({
+					playerID:ret_value.playerMainId,
+					socketID:socket.id
+				});
+				activeGames[ret_value.gameId] = player_and_socket;
+			}
+			else//游戏已存在，只是玩家是新加入的
+			{
+				console.log("socket.id: "+socket.id);
+				console.log("gameId: "+ret_value.gameId);
+				console.log("playerID: "+ret_value.playerMainId);
+				activeGames[ret_value.gameId].push({
+					playerID:ret_value.playerMainId,
+					socketID:socket.id
+				});
+			}
 		});
 		
 		socket.on('op', function(op){
@@ -295,6 +290,7 @@ io.on('connection', function(socket){
 				game.Split(op.gameID, op.userID);
 			}
 		});
+		
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
 			player.id = socket.id;
@@ -355,13 +351,13 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('disconnect', function(){
-			var pos = util.findUser(users, currentPlayer.id); //找到玩家当前位置
-			if(pos > -1)
-			{
-				users.splice(pos, 1); //删除当前玩家
-			}
-			console.log('[INFO] Player ' + currentPlayer.name + ' disconnected!!');
-			socket.broadcast.emit('playerDisconnected', {name: currentPlayer.name});
+			//var pos = util.findUser(users, currentPlayer.id); //找到玩家当前位置
+			//if(pos > -1)
+			//{
+				//users.splice(pos, 1); //删除当前玩家
+			//}
+			console.log('[INFO] Player ' + currentPlayer.nickname + ' disconnected!!');
+			//socket.broadcast.emit('playerDisconnected', {name: currentPlayer.name});
 		});
 
 		socket.on('updatetarget', function(target){
@@ -421,6 +417,17 @@ io.on('connection', function(socket){
 		});
 
 });
+
+function sceneUpdate()
+{
+	Object.keys(activeGames).forEach(function(key){
+		var diff = game.Update(key);
+		for(var i = 0; i < activeGames[key].length; i++)
+		{
+			sockets[activeGames[key][i].socketID].emit('scene-diff', diff);
+		}
+	});
+}
 
 function sendUpdates()
 {
@@ -781,7 +788,7 @@ server.get("/logout", on_exit);
 //setInterval(sendUpdates, 1000/c.networkUpdateFactor);
 //setInterval(elementsBalance, 3000);
 //setInterval(massLoss, 1000);
-
+setInterval(sceneUpdate, 1000/c.networkUpdateFactor);
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';

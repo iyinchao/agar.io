@@ -29,17 +29,17 @@ const States = {
       })
 
       this.g.$ws.on('joined', (e) => {
-        console.log('[ws] You are joined!')
+        console.log('[ws] You are joined!', e)
       })
 
       this.g.$ws.on('scene-setup', (e) => {
-        console.log('[ws] Scene is now setting up.')
+        console.log('[ws] Scene is now setting up.', e)
 
         this.g.$overlay.hide(this.g.$overlay.refs.mask)
       })
 
       this.g.$ws.on('scene-diff', (e) => {
-
+        console.log('[ws] Received scene diff...', e)
       })
 
       this.g.$ws.on('exited', (e) => {
@@ -258,6 +258,10 @@ const States = {
       }
       if (vX !== lvX || vY !== lvY) {
         console.log('send!', Math.round(vX), Math.round(vY))
+        // this.g.$ws.emit('op', {
+        //   t: 'mv',
+
+        // })
       }
       lvX = vX
       lvY = vY
