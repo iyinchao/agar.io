@@ -219,10 +219,8 @@ function DoMove(player, cx, cy)
     }
 
     var tv = util.CosSinX(dx, dy);
-    console.log(tv);
     player.x += tv[0] * player.speed * cfg.movePeriod;
     player.y += tv[1] * player.speed * cfg.movePeriod;
-    console.log(player.y);
     player.x = parseInt(util.MinMax(minX + player.radius, maxX - player.radius, player.x));
     player.y = parseInt(util.MinMax(minY + player.radius, maxY - player.radius, player.y));
     return 0;
@@ -236,7 +234,7 @@ function Move(_gameId, _playerId, dirX, dirY)
     }
 
     dirX = parseInt(dirX * 5000);
-    dirY = -parseInt(dirY * 5000);
+    dirY = parseInt(dirY * 5000);
     
     var pg = game.moveables[_playerId];
     if (!pg) return;
@@ -552,4 +550,4 @@ function TestFoo()
     }
 }
 
-//TestFoo();
+TestFoo();
