@@ -3,6 +3,7 @@ var util = require("./util");
 var logger = require("./logger").logger();
 var GameObject = require("./game_object.js").GameObject;
 var NewSceneObject = require("./game_object.js").NewSceneObject;
+var DeleteSceneObject = require("./game_object.js").DeleteSceneObject;
 var ScenePlayer = require("./game_object.js").ScenePlayer;
 var SceneCell = require("./game_object.js").SceneCell;
 var gameRefs = [];
@@ -228,13 +229,15 @@ function Move(_gameId, _playerId, dirX, dirY)
     if (!game) {
         return;
     }
+
     dirX = parseInt(dirX * 5000);
-    dirY = cfg.gameHeight - parseInt(dirY * 5000);
+    dirY = -parseInt(dirY * 5000);
     
     var pg = game.moveables[_playerId];
     if (!pg) return;
 
     pg.dir = [dirX, dirY];
+    console.log(pg.dir);
     if (!dirX && !dirY) {
     }
     for (var id in pg.players) {
@@ -532,13 +535,19 @@ function TestFoo()
     var game = gameRefs[0];
     cfg.maxFood = 1;
     cfg.maxVirus= 1;
-    FillEatable(game);
-    Move(0, 0, 0.5, 0.5);
-    
-    ret = Update(0);
-    console.log(ret);
-    ret = Update(0);
-    console.log(ret);
+    //FillEatable(game);
+    Move(0, 0, 0, 1);
+
+    for (var i = 0; i < 9; ++i) {
+        ret = Update(0);
+        console.log("the " + i + " round");
+        console.log(ret[0].x + "," + ret[0].y);
+        if (i == 3) {
+            Move(0, 0, 0, 0);
+        } else if (i == 6) {
+            Move(0, 0, 0, -1);
+        }
+    }
 }
 
- //TestFoo();
+//TestFoo();
