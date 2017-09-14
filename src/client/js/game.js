@@ -339,7 +339,7 @@ const States = {
       })
 
       // update speeds
-      const delta = 0.2
+      const delta = 0.1
       if (this.g.$key.down.isDown) {
         vY += delta
       }
@@ -368,11 +368,11 @@ const States = {
         vY = -1
       }
       if (vX !== lvX || vY !== lvY) {
-        console.log('send!', Math.round(vX), Math.round(vY))
+        console.log('send!', vX, vY)
         this.g.$ws.emit('op', {
           t: 'mv',
-          x: Math.round(vX),
-          y: Math.round(vY),
+          x: vX,
+          y: vY,
           userID: this.g.$info.userId,
           gameID: this.g.$info.gameId
         })
