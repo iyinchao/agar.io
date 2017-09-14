@@ -33,7 +33,7 @@
     "ejectDistanceToRadius": 2,
     "maxCellCount": 16,
 
-    "foodWeight": 1,
+    "foodWeight": 50,
     "foodRadius":10,
 
     "virusWeight": 0,
