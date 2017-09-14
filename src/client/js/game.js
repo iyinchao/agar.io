@@ -6,14 +6,11 @@ import Phaser from 'phaser'
 /* eslint-enable no-unused-vars */
 import gameConfig from '~/config/game'
 import { Player, Food, Virus } from '@/js/characters'
-import TinyColor from 'tinycolor2'
-
 
 let vX = 0
 let vY = 0
 let lvX = 0
 let lvY = 0
-
 
 const States = {
   game: {
@@ -30,16 +27,91 @@ const States = {
 
       this.g.$ws.on('joined', (e) => {
         console.log('[ws] You are joined!', e)
+        this.g.$info = {}
+        this.g.$info.gameId = e.gameID
+        this.g.$info.userId = e.userID
       })
 
       this.g.$ws.on('scene-setup', (e) => {
-        console.log('[ws] Scene is now setting up.', e)
+        console.log('[ws] Scene is now setting up.')
+
+        this.g.$info.myId = e.playerMainId
+        this.g.$playerList.clear()
+        this.g.$foodList.clear()
+        if (e.setup && e.setup.length) {
+          e.setup.forEach((obj) => {
+            switch (obj.t) {
+              case 2:
+                //food
+                this.g.addCharacter('food', {
+                  id: obj.id,
+                  hue: obj.hue,
+                  r: obj.r,
+                  x: obj.x,
+                  y: obj.y
+                })
+                break
+              case 1:
+                // player
+                this.g.addCharacter('player', obj)
+            }
+          })
+        }
 
         this.g.$overlay.hide(this.g.$overlay.refs.mask)
       })
 
       this.g.$ws.on('scene-diff', (e) => {
-        console.log('[ws] Received scene diff...', e)
+        // console.log('[ws] Received scene diff...', e)
+        console.log(e)
+        if (e && e.length) {
+          const ids = Array.from(this.g.$playerList.keys())
+          console.log(ids)
+          e.forEach((diff) => {
+            switch (diff.t) {
+              case 2:
+                // food
+                switch (diff.op) {
+                  case 1:
+                    // add
+                    this.g.addCharacter('food', {
+                      id: diff.id,
+                      hue: diff.hue,
+                      r: diff.r,
+                      x: diff.x,
+                      y: diff.y
+                    })
+                    break
+                  case -1:
+                    // remove
+                    this.g.removeCharacter('food', diff.id)
+                    break
+                }
+                break
+              case 1:
+                // player
+                // do diff here... fuck this shit.
+                const idx = ids.indexOf(diff.id)
+                if (idx > -1) {
+                  const p = this.g.getCharacter('player', diff.id)
+                  // console.log(diff.id, ids, diff, p)
+                  this.g.syncPlayeProps(
+                    p,
+                    diff
+                  )
+                  // remove updated id
+                  ids.splice(idx, 1)
+                } else {
+                  this.g.addCharacter('player', diff)
+                }
+                break
+            }
+          })
+          // delete
+          ids.forEach((id) => {
+            this.g.removeCharacter('player', id)
+          })
+        }
       })
 
       this.g.$ws.on('exited', (e) => {
@@ -64,36 +136,38 @@ const States = {
 
       this.g.$graphics = this.g.add.graphics(0, 0)
 
+      // NOTE:
+      // for (let i = 0; i < 1000; i++) {
+      //   this.game.addCharacter('food', {
+      //     id: i,
+      //     r: 10,
+      //     x: Math.random() * this.game.world.width,
+      //     y: Math.random() * this.game.world.height,
+      //     hue: parseInt(Math.random() * 360)
+      //   })
+      // }
 
-      for (let i = 0; i < 1000; i++) {
-        this.game.addCharacter('food', {
-          id: i,
-          r: 10,
-          x: Math.random() * this.game.world.width,
-          y: Math.random() * this.game.world.height,
-          hue: parseInt(Math.random() * 360)
-        })
-      }
+      // const p = {
+      //   id: 0,
+      //   r: 200,
+      //   hue: parseInt(Math.random() * 360),
+      //   x: 1000,
+      //   y: 500,
+      //   name: 'Charles',
+      //   cells: []
+      // }
 
-      const p = {
-        id: 0,
-        r: 200,
-        hue: parseInt(Math.random() * 360),
-        x: 500,
-        y: 500,
-        name: '1234',
-        cells: []
-      }
+      // for (let i = 0; i < 16; i++) {
+      //   p.cells.push({
+      //     x: p.x + 500 * (Math.random() - 0.5),
+      //     y: p.y + 500 * (Math.random() - 0.5),
+      //     r: 50 + 50 * Math.random()
+      //   })
+      // }
 
-      for (let i = 0; i < 16; i++) {
-        p.cells.push({
-          x: p.x + 400 * (Math.random() - 0.5),
-          y: p.y + 400 * (Math.random() - 0.5),
-          r: 50 + 100 * Math.random()
-        })
-      }
+      // this.g.$myPlayerId = 0
 
-      this.game.addCharacter('player', p)
+      // this.game.addCharacter('player', p)
 
       // this.game.addCharacter('player', {
       //   id: '1',
@@ -190,6 +264,43 @@ const States = {
       //   camY = player.y - this.game.scale.height / 2
       // }
 
+      // Set cam
+
+      let player
+      if (this.g.$info.myId !== undefined) {
+        player = this.g.getCharacter('player', this.g.$info.myId)
+      }
+
+      if (player && player.cells && player.cells.length) {
+        let playerBound
+        player.cells.forEach((cell) => {
+          if (!playerBound) {
+            playerBound = {
+              top: cell.y - cell.r,
+              left: cell.x - cell.r,
+              right: cell.x + cell.r,
+              bottom: cell.y + cell.r
+            }
+            return
+          }
+          let top = cell.y - cell.r
+          let left = cell.x - cell.r
+          let right = cell.x + cell.r
+          let bottom = cell.y + cell.r
+          playerBound.top = Math.min(playerBound.top, top)
+          playerBound.left = Math.min(playerBound.left, left)
+          playerBound.right = Math.max(playerBound.right, right)
+          playerBound.bottom = Math.max(playerBound.bottom, bottom)
+        })
+        this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
+        this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
+        this.game.$graphics.lineStyle(0, 0x000000, 0)
+        this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
+        this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
+
+        // this.g.camera.scale.setTo(2, 2)
+      }
+
       const rect = this.game.getViewRect()
       this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
       this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
@@ -258,10 +369,13 @@ const States = {
       }
       if (vX !== lvX || vY !== lvY) {
         console.log('send!', Math.round(vX), Math.round(vY))
-        // this.g.$ws.emit('op', {
-        //   t: 'mv',
-
-        // })
+        this.g.$ws.emit('op', {
+          t: 'mv',
+          x: Math.round(vX),
+          y: Math.round(vY),
+          userID: this.g.$info.userId,
+          gameID: this.g.$info.gameId
+        })
       }
       lvX = vX
       lvY = vY
@@ -274,6 +388,7 @@ const States = {
     render () {
       this.game.debug.cameraInfo(this.game.camera, 32, 64)
       this.game.debug.pointer(this.game.input.activePointer)
+      this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
     }
   }
 }
@@ -291,6 +406,9 @@ const Callbacks = {
     // })
     // ax = (e.clientX - (this.game.scale.width / 2)) / this.game.scale.width * 2
     // ay = (e.clientY - (this.game.scale.height / 2)) / this.game.scale.height * 2
+
+    // Get mouse position of world
+
   },
   keyboardPress (e,f) {
 
@@ -334,9 +452,15 @@ class Game extends Phaser.Game {
     this.$massFoodList = new Map()
     this.$renderList = []
     this.$myPlayerId = null
+    this.$info = {}
 
     this.state.add('game', States.game)
     // this.state.start('game')
+  }
+  syncPlayeProps (player, diff) {
+    player.cells = diff.cells
+    player.x = diff.x
+    player.y = diff.y
   }
   drawCircle (x, y, r, edges = 40) {
     // Generate polygon points
@@ -412,6 +536,7 @@ class Game extends Phaser.Game {
       return
     }
 
+
     let list
     switch (type) {
       case 'player':
@@ -426,7 +551,6 @@ class Game extends Phaser.Game {
       default:
         console.warn('@getCharacter', `Invalid character tyle ${type}`)
     }
-
     return list.get(id)
   }
   removeCharacter (type, id) {
@@ -469,9 +593,13 @@ class Game extends Phaser.Game {
     this.$playerList.forEach((player) => {
       if (player.cells && player.cells.length) {
         player.cells.forEach((cell) => {
-          this.$renderList.push(cell)
+          if (this.isInView(cell)) {
+            this.$renderList.push(cell)
+          }
         })
-        this.$renderList.push(player)
+        if (this.isInView(player)) {
+          this.$renderList.push(player)
+        }
       }
     })
   }
