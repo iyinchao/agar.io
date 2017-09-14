@@ -219,8 +219,10 @@ function DoMove(player, cx, cy)
     }
 
     var tv = util.CosSinX(dx, dy);
+    console.log(tv);
     player.x += tv[0] * player.speed * cfg.movePeriod;
     player.y += tv[1] * player.speed * cfg.movePeriod;
+    console.log(player.y);
     player.x = parseInt(util.MinMax(minX + player.radius, maxX - player.radius, player.x));
     player.y = parseInt(util.MinMax(minY + player.radius, maxY - player.radius, player.y));
     return 0;
@@ -244,15 +246,10 @@ function Move(_gameId, _playerId, dirX, dirY)
     }
 
     pg.dir = [dirX, dirY];
-    console.log(pg.dir);
     for (var id in pg.players) {
         var player = pg.players[id];
-        if ((dirX || dirY) && player.speed == 0) {
-            player.speed = parseInt(cfg.weightXspeed / player.weight);
-            player.speed = player.speed == 0 ? cfg.minSpeed : player.speed;
-        } else {
-            player.speed = 0;
-        }
+        player.speed = parseInt(cfg.weightXspeed / player.weight);
+        player.speed = player.speed == 0 ? cfg.minSpeed : player.speed;
     }
 }
 

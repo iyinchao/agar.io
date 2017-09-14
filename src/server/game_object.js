@@ -23,7 +23,7 @@ function NewSceneObject(obj)
         op: 1,
         hue: obj.color,
         x: obj.x,
-        y: cfg.gameHeight - obj.y,
+        y: obj.y,
         r: obj.radius,
     };
 }
