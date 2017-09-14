@@ -83,6 +83,8 @@ export class Player extends Character {
         this._cells.forEach((cell, index) => {
           this._cells[index].parent = this
           this._cells[index].update = this.updateCell.bind(this._cells[index])
+          //
+          this._cells[index].r = cell.radius
         })
       }
     })
@@ -134,7 +136,7 @@ export class Player extends Character {
   updateCell () {
     this.parent.game.$graphics.lineStyle(10, this.parent._hexColor, 1)
     this.parent.game.$graphics.beginFill(this.parent._hexFillColor, 1)
-    this.parent.game.$graphics.drawCircle(this.x, this.y, this.r)
+    this.parent.game.$graphics.drawCircle(this.x, this.y, this.r * 2)
     this.parent.game.$graphics.endFill()
     this.parent.game.$graphics.lineWidth = 0
   }

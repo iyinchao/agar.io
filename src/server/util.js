@@ -92,6 +92,19 @@ exports.uniformPosition = function(points, radius)
 	return bestCandidate;
 };
 
+exports.findIndex = function(buffer, id)
+{
+	var pos = buffer.length;
+	while(pos--)
+	{
+		if(buffer[pos].id === id)
+		{
+			return pos;
+		}
+	}
+	return -1;
+}
+
 exports.findUser = function(userlist, id)
 {
 	var pos = userlist.length;
