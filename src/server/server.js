@@ -6,7 +6,7 @@ var account_handler = require("./account_handler");
 var logger = require("./logger").logger();
 var log4js = require("./logger").log4js;
 var ret_data = require("./ret_data");
-//zxt 
+//zxt
 var http = require('http').Server(server);
 var io = require('socket.io')(http);
 var users = [];
@@ -244,13 +244,13 @@ io.on('connection', function(socket){
 		var currentPlayer = {
 			nickname: "jack"
 		};
-		
+
 		socket.on('join', function(player){
 			var ret_value = game.Join(player.nickname);
 			currentPlayer = player;
 			socket.emit('joined', {gameID: ret_value.gameId, userID:ret_value.playerMainId});
 			console.log("Player "+player.nickname+" joined");
-			socket.emit('scene-setup',game.Join(player.nickname));
+			socket.emit('scene-setup', ret_value);
 			sockets[socket.id] = socket; //将玩家的socket记录下来
 			if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
 			{
@@ -275,7 +275,7 @@ io.on('connection', function(socket){
 				});
 			}
 		});
-		
+
 		socket.on('op', function(op){
 			if(op.t === "mv")//player move
 			{
@@ -290,7 +290,7 @@ io.on('connection', function(socket){
 				game.Split(op.gameID, op.userID);
 			}
 		});
-		
+
 		socket.on('playerlogin', function(player){
 			console.log('[INFO] Player ' + player.name + ' connecting !');
 			player.id = socket.id;
@@ -509,7 +509,7 @@ function sendUpdates()
 		//sockets[u.id].emit('testsendupdates', 'this is a test for sent update');
 		//socket.broadcast.emit('testsendupdates', 'this is a test for sent update');
         //sockets[u.id].emit('serverTellPlayerMove', {"users":users, "food":food, "virus":virus, "massFood":massFood});
-		
+
 		//console.log('users[u].id:'+u.id);
 		sockets[u.id].emit('serverTellPlayerMove', {"visibleCells":users, "foodChange":foodChange,"massFoodChange":massFoodChange,"virusChange":virusChange});
     });
@@ -521,7 +521,7 @@ function elementsBalance()
 	foodChange = [];
 	virusChange = [];
 	massFoodChange = [];
-	
+
 	var foodToadd = c.maxFood - food.length;
 	var virusToadd = c.maxVirus - virus.length;
 	var massFoodToAdd = c.maxMassFood - massFood.length;
@@ -570,7 +570,7 @@ function eatFood(player, player_start_position)
 					});
 					player.mass += 1;
 					food.splice(i,1);//删除食物
-					
+
 					player.radius = util.massToRadius(player.mass);
 				}
 			}
@@ -593,7 +593,7 @@ function eatFood(player, player_start_position)
 				});
 				player.mass += 1;
 				food.splice(i,1);//删除食物
-				
+
 				player.radius = util.massToRadius(player.mass);
 			}
 		}
@@ -615,7 +615,7 @@ function eatFood(player, player_start_position)
 				});
 				player.mass += 1;
 				food.splice(i,1);//删除食物
-				
+
 				player.radius = util.massToRadius(player.mass);
 			}
 		}
@@ -637,7 +637,7 @@ function eatFood(player, player_start_position)
 				});
 				player.mass += 1;
 				food.splice(i,1);//删除食物
-				
+
 				player.radius = util.massToRadius(player.mass);
 			}
 		}
@@ -654,10 +654,10 @@ function meetOtherPlayer(player, player_start_position)
 
 function doPlayerMoveLogic(player)
 {
-	
-	
+
+
 	movePlayer(player);//这一段时间间隔，只是计算出下一帧的位置，实际上还并未移动
-	
+
 	//eatVirus(player, player_start_position);//计算在这一帧，轨迹扫过的地方，覆盖了哪些病毒，吃掉
 	//meetOtherPlayer(player, player_start_position);//计算在这一帧，轨迹扫过的地方，有没有遇到其它玩家
 }
@@ -768,7 +768,7 @@ function movePlayer(player)
     }
 	player.x = x/player.cells.length;
     player.y = y/player.cells.length;
-	
+
 }
 
 function massLoss()
