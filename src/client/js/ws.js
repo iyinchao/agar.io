@@ -12,11 +12,17 @@ import io from 'socket.io-client'
 // //const projectConfig = getConfigForEnv(process.env.NODE_ENV)
 
 // console.log(projectConfig)
+let url = ''
+if (process.env.NODE_ENV === 'develop') {
+  url = 'http://localhost:3000'
+} else {
+  url = 'http://45.76.182.99:3000'
+}
 
 export class WS {
   constructor () {
     this.socket = io(
-      'http://localhost:3000',
+      url,
       {
         autoConnect: false
       }

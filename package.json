@@ -5,7 +5,7 @@
   "private": true,
   "scripts": {
     "dev": "cross-env NODE_ENV=development node ./scripts/dev.js",
-    "build": "cross-env NODE_ENV=production node ./scripts/build.js",
+    "build": "cross-env NODE_ENV=production node --max-old-space-size=4096 ./scripts/build.js",
     "server": "node ./src/server/server.js",
     "static": "npm run build && node ./src/server/server-static.js"
   },
