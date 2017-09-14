@@ -408,6 +408,7 @@ function DetectCollision(game)
                 }
             }
             cell.push(pg.players[i]);
+            UpdateAttr(pg.players[i]);
         }
 
         if (cell.length == 0) {
