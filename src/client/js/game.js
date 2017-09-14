@@ -293,8 +293,12 @@ const States = {
           playerBound.right = Math.max(playerBound.right, right)
           playerBound.bottom = Math.max(playerBound.bottom, bottom)
         })
-        this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
-        this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
+        if (process.env.NODE_ENV === 'development') {
+          this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
+          this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
+        }
+
+
         this.game.$graphics.lineStyle(0, 0x000000, 0)
         this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
         this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
@@ -388,8 +392,10 @@ const States = {
     },
     render () {
       this.game.debug.cameraInfo(this.game.camera, 32, 64)
-      this.game.debug.pointer(this.game.input.activePointer)
       this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
+      if (process.env.NODE_ENV === 'development') {
+        this.game.debug.pointer(this.game.input.activePointer)
+      }
     }
   }
 }
@@ -432,7 +438,7 @@ const Callbacks = {
       if (nY < -1) {
         nY = -1
       }
-      console.log('send!', vX, vY)
+      console.log('send!', nX, nY)
       this.game.$ws.emit('op', {
         t: 'mv',
         x: nX,
@@ -442,7 +448,7 @@ const Callbacks = {
       })
     }
   },
-  keyboardPress (e,f) {
+  keyboardPress (e, f) {
 
   },
   keyboardDown (e) {
@@ -452,13 +458,17 @@ const Callbacks = {
     switch (e.code) {
       case 'Space':
         this.game.$ws.emit('op', {
-          t: 'space'
+          t: 'space',
+          userID: this.game.$info.userId,
+          gameID: this.game.$info.gameId
         })
         break
       case 'w':
       case 'W':
         this.game.$ws.emit('op', {
-          t: 'w'
+          t: 'w',
+          userID: this.game.$info.userId,
+          gameID: this.game.$info.gameId
         })
         break
     }
