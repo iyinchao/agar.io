@@ -12,6 +12,9 @@ let vY = 0
 let lvX = 0
 let lvY = 0
 
+let mX = 0
+let mY = 0
+
 const States = {
   game: {
     preload () {
@@ -63,10 +66,8 @@ const States = {
 
       this.g.$ws.on('scene-diff', (e) => {
         // console.log('[ws] Received scene diff...', e)
-        console.log(e)
         if (e && e.length) {
           const ids = Array.from(this.g.$playerList.keys())
-          console.log(ids)
           e.forEach((diff) => {
             switch (diff.t) {
               case 2:
@@ -408,7 +409,38 @@ const Callbacks = {
     // ay = (e.clientY - (this.game.scale.height / 2)) / this.game.scale.height * 2
 
     // Get mouse position of world
+    mX = e.clientX + this.game.camera.x
+    mY = e.clientY + this.game.camera.y
 
+    // Get current player
+    const p = this.game.getCharacter('player', this.game.$info.myId)
+    if (p) {
+      let vecX = mX - p.x
+      let vecY = mY - p.y
+      // Normalize vector
+      let nX = vecX / this.game.scale.width * 2
+      let nY = vecY / this.game.scale.height * 2
+      if (nX > 1) {
+        nX = 1
+      }
+      if (nX < -1) {
+        nX = -1
+      }
+      if (nY > 1) {
+        nY = 1
+      }
+      if (nY < -1) {
+        nY = -1
+      }
+      console.log('send!', vX, vY)
+      this.game.$ws.emit('op', {
+        t: 'mv',
+        x: nX,
+        y: nY,
+        userID: this.game.$info.userId,
+        gameID: this.game.$info.gameId
+      })
+    }
   },
   keyboardPress (e,f) {
 
