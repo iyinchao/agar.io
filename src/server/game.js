@@ -211,7 +211,10 @@ function DoMove(player, cx, cy)
     var dx = cx - player.x, dy = cy - player.y;
 
     if (dx == 0) {
-        if (dy == 0) return -1;
+        if (dy == 0) {
+            console.log("BUG");
+            return -1;
+        }
         dy = dy > 0 ? 1 : -1;
     }
 
@@ -236,10 +239,12 @@ function Move(_gameId, _playerId, dirX, dirY)
     var pg = game.moveables[_playerId];
     if (!pg) return;
 
+    if (!dirX && !dirY) {
+        return;
+    }
+
     pg.dir = [dirX, dirY];
     console.log(pg.dir);
-    if (!dirX && !dirY) {
-    }
     for (var id in pg.players) {
         var player = pg.players[id];
         if ((dirX || dirY) && player.speed == 0) {
