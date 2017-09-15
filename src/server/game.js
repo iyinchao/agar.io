@@ -4,6 +4,7 @@ var logger = require("./logger").logger();
 var GameObject = require("./game_object.js").GameObject;
 var NewSceneObject = require("./game_object.js").NewSceneObject;
 var DeleteSceneObject = require("./game_object.js").DeleteSceneObject;
+var DeleteScenePlayer = require("./game_object.js").DeleteScenePlayer;
 var ScenePlayer = require("./game_object.js").ScenePlayer;
 var SceneCell = require("./game_object.js").SceneCell;
 var gameRefs = [];
@@ -32,7 +33,6 @@ function PlayerGroup(_x, _y, _name, _player)
         center: [_x, _y],
         dir: [0, 0],
         players: [_player],
-        change: true,
         color: util.randomInRange(1, 359),
         name: _name,
         scene: {
@@ -332,7 +332,6 @@ function Split(_gameId, _playerId)
         }
     }
     UpdatePlayerGroupCenter(pg);
-    pg.change = true;
 }
 
 function UpdatePosition(pg)
@@ -341,9 +340,6 @@ function UpdatePosition(pg)
     for (var id in pg.players) {
         var player = pg.players[id];
         var iret = DoMove(player, point[0], point[1]);
-        if (!iret) {
-            pg.change = true;
-        }
     }
 }
 
@@ -430,19 +426,55 @@ function ExtractPlayerScenePlayers(game)
     var objs = [];
     for (var gid in game.moveables) {
         var pg = game.moveables[gid];
-        if (pg.players.length == 0) continue;
-        var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg);
-        for (var i = 0; i < pg.players.length; ++i) {
-            scenePlayer.cells.push(pg.players[i]);
+        if (pg.players.length == 0) {
+            delete game.moveables[gid];
+            continue;
+        }
+        var scenePlayer = null;
+        var lastCount = 0;
+        if (game.changePlayer[gid]) {
+            scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 0);
+        } else {
+            scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
+            lastCount = game.changePlayer[gid];
+        }
+        var thisCount = pg.players.length, i = 0;
+        for (i = 0; i < lastCount && i < thisCount; ++i) {
+            scenePlayer.cells.push(new SceneCell(pg.players[i], i, 0));
+        }
+        for (; i < lastCount; ++i) {
+            scenePlayer.cells.push(new SceneCell(pg.players[i], i, -1));
+        }
+        for (; i < thisCount; ++i) {
+            scenePlayer.cells.push(new SceneCell(pg.players[i], i, 1));
         }
         objs.push(scenePlayer);
+    }
+
+    for (var index in game.changePlayer) {
+        if (!game.moveables[index]) {
+            objs.push(new DeleteScenePlayer(OBJECT_TYPE.PLAYER, index));
+        }
+    }
+    game.changePlayer = {};
+    for (gid in game.moveables) {
+        game.changePlayer[gid] = game.moveables[gid].players.length;
     }
     return objs;
 }
 
 function ExtractPlayerScene(game)
 {
-    var objs = ExtractPlayerScenePlayers(game);
+    var objs = [];
+    for (var gid in game.moveables) {
+        var pg = game.moveables[gid];
+        if (pg.players.length == 0) continue;
+        var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
+        for (var i = 0; i < pg.players.length; ++i) {
+            scenePlayer.cells.push(pg.players[i]);
+        }
+        objs.push(scenePlayer);
+    }
     for (var id in game.others) {
         var obj = game.others[id];
         objs.push(new NewSceneObject(obj));
@@ -520,7 +552,6 @@ function Eject(_gameId, _playerId)
         }
     }
     UpdatePlayerGroupCenter(pg);
-    pg.change = true;
 }
 
 exports.Join = Join;
@@ -535,20 +566,18 @@ function TestFoo()
     var ret = Join('pp');
     var game = gameRefs[0];
     cfg.maxFood = 1;
-    cfg.maxVirus= 1;
-    //FillEatable(game);
-    Move(0, 0, 0, 1);
+    cfg.maxVirus= 0;
+    FillEatable(game);
 
-    for (var i = 0; i < 9; ++i) {
-        ret = Update(0);
-        console.log("the " + i + " round");
-        console.log(ret[0].x + "," + ret[0].y);
-        if (i == 3) {
-            Move(0, 0, 0, 0);
-        } else if (i == 6) {
-            Move(0, 0, 0, -1);
-        }
-    }
+    console.log(Update(0));
+    Join('p2');
+    console.log(Update(0));
+    Split(0, 0);
+    console.log(Update(0));
+    Join('p3');
+    console.log(Update(0));
+    Exit(0,0);
+    console.log(Update(0));
 }
 
 //TestFoo();

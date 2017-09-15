@@ -37,11 +37,12 @@ function DeleteSceneObject(obj)
     };
 }
 
-function ScenePlayer(_t, pg)
+function ScenePlayer(_t, pg, _op)
 {
     return {
         id: pg.id,
         t: _t,
+        op: _op,
         name: pg.name,
         x: parseInt(pg.center[0]),
         y: parseInt(pg.center[1]),
@@ -50,10 +51,20 @@ function ScenePlayer(_t, pg)
     };
 }
 
-function SceneCell(player, _id)
+function DeleteScenePlayer(_t, _id)
 {
     return {
         id: _id,
+        t: _t,
+        op: -1,
+    };
+}
+
+function SceneCell(player, _id, _op)
+{
+    return {
+        id: _id,
+        op: _op,
         x: parseInt(player.x),
         y: parseInt(player.y),
         r: parseInt(player.radius),
@@ -63,5 +74,6 @@ function SceneCell(player, _id)
 exports.GameObject = GameObject;
 exports.NewSceneObject = NewSceneObject;
 exports.DeleteSceneObject = DeleteSceneObject;
+exports.DeleteScenePlayer = DeleteScenePlayer;
 exports.ScenePlayer = ScenePlayer;
 exports.SceneCell = SceneCell;
