@@ -86,7 +86,7 @@ function UpdatePlayerGroupCenter(pg)
         W += player.weight;
     }
     if (W == 0) return;
-    pg.center = [parseInt(X / W), parseInt(Y / W)];
+    pg.center = [X / W, Y / W];
 }
 
 function GenerateGameObject(type)
@@ -96,7 +96,7 @@ function GenerateGameObject(type)
     switch (type) {
     case OBJECT_TYPE.PLAYER:
         obj.weight = cfg.playerWeight;
-        obj.radius = parseInt(util.WeightToRadius(obj.weight));
+        obj.radius = util.WeightToRadius(obj.weight);
         obj.speed = 0;
         break;
     case OBJECT_TYPE.VIRUS:
@@ -115,8 +115,8 @@ function GenerateGameObject(type)
     }
     // TODO: position dont collide with others
     var pos = util.randomPosition(obj.radius);
-    obj.x = parseInt(pos.x + minX);
-    obj.y = parseInt(pos.y + minY);
+    obj.x = pos.x + minX;
+    obj.y = pos.y + minY;
 
     return obj;
 }
@@ -180,22 +180,22 @@ function Join(nickName)
 function DirCrossPoint(x, y, dirX, dirY)
 {
     if (dirX == 0) {
-        return dirY > 0 ? [x, maxY] : [x, minY];
+        return dirY >= 0 ? [x, maxY] : [x, minY];
     } else if (dirY == 0) {
-        return dirX > 0 ? [maxX, y] : [minX, y];
+        return dirX >= 0 ? [maxX, y] : [minX, y];
     }
     var tv = dirY / dirX;
     var h = y - tv * x;
     var x1, y1;
-    if (dirX > 0 && dirY > 0) {
+    if (dirX >= 0 && dirY >= 0) {
         x1 = (maxY - h) / tv;
         y1 = tv * maxX + h;
         return x1 < maxX ? [x1, maxY] : [maxX, y1];
-    } else if (dirX > 0 && dirY < 0) {
+    } else if (dirX >= 0 && dirY <= 0) {
         x1 = (minY - h) / tv;
         y1 = tv * maxX + h;
         return x1 < maxX ? [x1, minY] : [maxX, y1];
-    } else if (dirX < 0 && dirY < 0) {
+    } else if (dirX <= 0 && dirY < 0) {
         x1 = (minY - h) / tv;
         y1 = tv * minX + h;
         return x1 > minX ? [x1, minY]: [minX, y1];
@@ -221,8 +221,8 @@ function DoMove(player, cx, cy)
     var tv = util.CosSinX(dx, dy);
     player.x += tv[0] * player.speed * cfg.movePeriod;
     player.y += tv[1] * player.speed * cfg.movePeriod;
-    player.x = parseInt(util.MinMax(minX + player.radius, maxX - player.radius, player.x));
-    player.y = parseInt(util.MinMax(minY + player.radius, maxY - player.radius, player.y));
+    player.x = util.MinMax(minX + player.radius, maxX - player.radius, player.x);
+    player.y = util.MinMax(minY + player.radius, maxY - player.radius, player.y);
     return 0;
 }
 
@@ -233,8 +233,8 @@ function Move(_gameId, _playerId, dirX, dirY)
         return;
     }
 
-    dirX = parseInt(dirX * 5000);
-    dirY = parseInt(dirY * 5000);
+    dirX = (dirX * 5000);
+    dirY = (dirY * 5000);
     
     var pg = game.moveables[_playerId];
     if (!pg) return;
@@ -246,15 +246,15 @@ function Move(_gameId, _playerId, dirX, dirY)
     pg.dir = [dirX, dirY];
     for (var id in pg.players) {
         var player = pg.players[id];
-        player.speed = parseInt(cfg.weightXspeed / player.weight);
-        player.speed = player.speed == 0 ? cfg.minSpeed : player.speed;
+        player.speed = (cfg.weightXspeed / player.weight);
+        player.speed = player.speed < cfg.minSpeed ? cfg.minSpeed : player.speed;
     }
 }
 
 function UpdateAttr(player)
 {
-    player.speed = parseInt(cfg.weightXspeed / player.weight);
-    player.radius = parseInt(util.WeightToRadius(player.weight));
+    player.speed = (cfg.weightXspeed / player.weight);
+    player.radius = (util.WeightToRadius(player.weight));
 }
 
 var virusSplitDir = [
@@ -269,17 +269,17 @@ function DoMultiSplit(player)
 {
     // split into 6 parts
     var d = player.radius * cfg.splitDistanceToRadius;
-    var pw = parseInt(player.weight / virusSplitDir.length);
+    var pw = (player.weight / virusSplitDir.length);
     var ret = [];
     for (var i = 0; i < virusSplitDir.length; ++i) {
         var newOne = new GameObject(player.id, OBJECT_TYPE.PLAYER, pw);
         UpdateAttr(newOne);
-        newOne.x = parseInt(d * virusSplitDir[i][0] + player.x);
-        newOne.y = parseInt(d * virusSplitDir[i][1] + player.y);
+        newOne.x = (d * virusSplitDir[i][0] + player.x);
+        newOne.y = (d * virusSplitDir[i][1] + player.y);
         if (CheckBound(newOne)) continue;
         ret.push(newOne);
     }
-    player.weight = parseInt(player.weight / virusSplitDir.length);
+    player.weight = (player.weight / virusSplitDir.length);
     UpdateAttr(player);
     return ret;
 }
@@ -299,8 +299,8 @@ function DoBinSplit(player, cosx, sinx)
     player.radius = copy.radius;
 
     var splitDistance = copy.radius * cfg.splitDistanceToRadius;
-    copy.x = parseInt(splitDistance * cosx + player.x);
-    copy.y = parseInt(splitDistance * sinx + player.y);
+    copy.x = (splitDistance * cosx + player.x);
+    copy.y = (splitDistance * sinx + player.y);
     if (CheckBound(copy))
         return null;
     return copy;
@@ -489,8 +489,8 @@ function DoEject(player, cosx, sinx)
     UpdateAttr(player);
 
     var ejectDis = player.radius * cfg.ejectDistanceToRadius;
-    mass.x = parseInt(ejectDis * cosx + player.x);
-    mass.y = parseInt(ejectDis * sinx + player.y);
+    mass.x = (ejectDis * cosx + player.x);
+    mass.y = (ejectDis * sinx + player.y);
     
     if (CheckBound(mass))
         return null;

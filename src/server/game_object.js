@@ -22,9 +22,9 @@ function NewSceneObject(obj)
         t: obj.type,
         op: 1,
         hue: obj.color,
-        x: obj.x,
-        y: obj.y,
-        r: obj.radius,
+        x: parseInt(obj.x),
+        y: parseInt(obj.y),
+        r: parseInt(obj.radius),
     };
 }
 
@@ -43,8 +43,8 @@ function ScenePlayer(_t, pg)
         id: pg.id,
         t: _t,
         name: pg.name,
-        x: pg.center[0],
-        y: pg.center[1],
+        x: parseInt(pg.center[0]),
+        y: parseInt(pg.center[1]),
         hue: pg.color,
         cells: [],
     };
@@ -54,9 +54,9 @@ function SceneCell(player, _id)
 {
     return {
         id: _id,
-        x: player.x,
-        y: player.y,
-        r: player.radius,
+        x: parseInt(player.x),
+        y: parseInt(player.y),
+        r: parseInt(player.radius),
     };
 }
 
