@@ -15,6 +15,13 @@ let lvY = 0
 let mX = 0
 let mY = 0
 
+let leaderBoardTimer = 0
+
+const deleteOp = (obj) => {
+  delete obj.op
+  return obj
+}
+
 const States = {
   game: {
     preload () {
@@ -45,7 +52,7 @@ const States = {
           e.setup.forEach((obj) => {
             switch (obj.t) {
               case 2:
-                //food
+                // food
                 this.g.addCharacter('food', {
                   id: obj.id,
                   hue: obj.hue,
@@ -90,28 +97,50 @@ const States = {
                 }
                 break
               case 1:
-                // player
-                // do diff here... fuck this shit.
-                const idx = ids.indexOf(diff.id)
-                if (idx > -1) {
-                  const p = this.g.getCharacter('player', diff.id)
-                  // console.log(diff.id, ids, diff, p)
-                  this.g.syncPlayeProps(
-                    p,
-                    diff
-                  )
-                  // remove updated id
-                  ids.splice(idx, 1)
-                } else {
-                  this.g.addCharacter('player', diff)
+                let p
+                switch (diff.op) {
+                  case 1:
+                    this.g.addCharacter('player', deleteOp(diff))
+                    break
+                  case 0:
+                    // Sync data
+                    p = this.g.getCharacter('player', diff.id)
+                    const props = Object.keys(diff)
+                    props.forEach((prop) => {
+                      p[prop] = diff[prop]
+                    })
+
+                    break
+                  case -1:
+                    p = this.g.removeCharacter('player', diff.id)
+                    p.destory()
+                    p = null
+                    break
                 }
                 break
+              // case 1:
+              //   // player
+              //   // do diff here... fuck this shit.
+              //   const idx = ids.indexOf(diff.id)
+              //   if (idx > -1) {
+              //     const p = this.g.getCharacter('player', diff.id)
+              //     // console.log(diff.id, ids, diff, p)
+              //     this.g.syncPlayeProps(
+              //       p,
+              //       diff
+              //     )
+              //     // remove updated id
+              //     ids.splice(idx, 1)
+              //   } else {
+              //     this.g.addCharacter('player', diff)
+              //   }
+              //   break
             }
           })
           // delete
-          ids.forEach((id) => {
-            this.g.removeCharacter('player', id)
-          })
+          // ids.forEach((id) => {
+          //   this.g.removeCharacter('player', id)
+          // })
         }
       })
 
@@ -211,22 +240,6 @@ const States = {
       //   })
       // })
 
-      // this.game.$ws.socket.on('serverTellPlayerMove', (e) => {
-      //   const player = this.game.getCharacter('player', this.game.$myPlayerId)
-
-      //   e.visibleCells.forEach((p, index) => {
-      //     if (index === 0) {
-      //       player.x = p.x
-      //       player.y = p.y
-      //       p.cells.forEach((cell, index) => {
-      //         player.cells[index].x = cell.x
-      //         player.cells[index].y = cell.y
-      //         player.cells[index].radius = cell.radius
-      //       })
-      //     }
-      //   })
-      // })
-
       this.g.$ws.connect()
 
       //this.game.$myPlayerId = 1
@@ -255,18 +268,7 @@ const States = {
 
       this.g.$renderList = []
 
-      // let camX = 0
-      // let camY = 0
-
-      // if (this.game.$myPlayerId) {
-      //   const player = this.game.getCharacter('player', this.game.$myPlayerId)
-
-      //   camX = player.x - this.game.scale.width / 2
-      //   camY = player.y - this.game.scale.height / 2
-      // }
-
       // Set cam
-
       let player
       if (this.g.$info.myId !== undefined) {
         player = this.g.getCharacter('player', this.g.$info.myId)
@@ -315,7 +317,22 @@ const States = {
       // this.game.camera.x = camX
       // this.game.camera.y = camY
 
-      this.game.cullScene()
+      this.g.cullScene()
+      this.g.$renderList.forEach((item) => {
+        item.update()
+      })
+
+      // Update leaderBoard
+      if (leaderBoardTimer > 40) {
+        // Generate leader info
+        const ids = Array.from(this.g.$playerList.keys())
+        // ids.sort((a, b) => {
+        //   // if (this.g.$playerList.get(a).)
+        // })
+        console.log('in')
+        leaderBoardTimer = -1
+      }
+      leaderBoardTimer++
 
       // this.game.foodList.forEach((food) => {
       //   this.game.drawFood(food)
@@ -338,10 +355,6 @@ const States = {
       // player.r = a
       // player.position.x += Math.round(ax * 6)
       // player.position.y += Math.round(ay * 6)
-
-      this.g.$renderList.forEach((item) => {
-        item.update()
-      })
 
       // update speeds
       const delta = 0.1
