@@ -71,7 +71,7 @@ class Overlay {
     if (Array.isArray(list) && list.length) {
       list.forEach((item) => {
         html += `<div class="name ${item.id === this.game.$info.myId ? 'self' : ''}">\
-          ${item.rank}.$nbsp;${item.name}\
+          ${item.rank}. ${item.name}(${item.weight})\
           </div>`
       })
     }
@@ -82,11 +82,11 @@ class Overlay {
       this.show(this.refs.leaderBoard)
     }
 
-    this.refs.leaderBoard.innerHTML = html
+    this.refs.leaderBoardContent.innerHTML = html
   }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {
-      this.game.$myPlayerName = this.refs.textNick.value
+      this.game.$info.myName = this.refs.textNick.value
       this.game.state.start('game')
       e.target.blur()
       // this.hide(this.refs.mask)
