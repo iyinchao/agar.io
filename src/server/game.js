@@ -362,7 +362,7 @@ function CollideWithObject(player, obj, game)
 
 function CollidePlayerGroup(player, start, playerGroup)
 {
-    for (var i = start; i < playerGroup.players.length; ++i) {
+    for (var i = 0; i < playerGroup.players.length; ++i) {
         CollideWithObject(player, playerGroup.players[i]);
     }
 }
@@ -453,7 +453,7 @@ function ExtractPlayerScenePlayers(game)
 
     for (var index in game.changePlayer) {
         if (!game.moveables[index]) {
-            objs.push(new DeleteScenePlayer(OBJECT_TYPE.PLAYER, index));
+            objs.push(new DeleteScenePlayer(OBJECT_TYPE.PLAYER, parseInt(index)));
         }
     }
     game.changePlayer = {};
@@ -471,7 +471,7 @@ function ExtractPlayerScene(game)
         if (pg.players.length == 0) continue;
         var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
         for (var i = 0; i < pg.players.length; ++i) {
-            scenePlayer.cells.push(pg.players[i]);
+            scenePlayer.cells.push(new SceneCell(pg.players[i], i, 1));
         }
         objs.push(scenePlayer);
     }

@@ -7,7 +7,7 @@ function GameObject(_id, _type, _mass, _radius)
         id: _id,
         type: _type,
         weight: _mass,
-        radius: _radius,
+        r: _radius,
         color: util.randomInRange(1, 359),
         speed: 0,
         x: 0,
