@@ -434,9 +434,9 @@ function ExtractPlayerScenePlayers(game)
         var lastCount = 0;
         if (game.changePlayer[gid]) {
             scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 0);
+            lastCount = game.changePlayer[gid];
         } else {
             scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
-            lastCount = game.changePlayer[gid];
         }
         var thisCount = pg.players.length, i = 0;
         for (i = 0; i < lastCount && i < thisCount; ++i) {
@@ -569,15 +569,12 @@ function TestFoo()
     cfg.maxVirus= 0;
     FillEatable(game);
 
-    console.log(Update(0));
-    Join('p2');
-    console.log(Update(0));
-    Split(0, 0);
-    console.log(Update(0));
-    Join('p3');
-    console.log(Update(0));
-    Exit(0,0);
-    console.log(Update(0));
+    Split(0,0);
+    console.log(Update(0)[0].cells);
+    console.log(Update(0)[0].cells);
+    console.log(Update(0)[0].cells);
+    console.log(Update(0)[0].cells);
+    console.log(Update(0)[0].cells);
 }
 
 //TestFoo();
