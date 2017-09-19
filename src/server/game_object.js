@@ -60,11 +60,10 @@ function DeleteScenePlayer(_t, _id)
     };
 }
 
-function SceneCell(player, _id, _op)
+function SceneCell(player, _id)
 {
     return {
         id: _id,
-        op: _op,
         x: parseInt(player.x),
         y: parseInt(player.y),
         r: parseInt(player.radius),

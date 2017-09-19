@@ -431,22 +431,13 @@ function ExtractPlayerScenePlayers(game)
             continue;
         }
         var scenePlayer = null;
-        var lastCount = 0;
         if (game.changePlayer[gid]) {
             scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 0);
-            lastCount = game.changePlayer[gid];
         } else {
             scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
         }
-        var thisCount = pg.players.length, i = 0;
-        for (i = 0; i < lastCount && i < thisCount; ++i) {
-            scenePlayer.cells.push(new SceneCell(pg.players[i], i, 0));
-        }
-        for (; i < lastCount; ++i) {
-            scenePlayer.cells.push(new SceneCell(pg.players[i], i, -1));
-        }
-        for (; i < thisCount; ++i) {
-            scenePlayer.cells.push(new SceneCell(pg.players[i], i, 1));
+        for (var i = 0; i < pg.players.length; ++i) {
+            scenePlayer.cells.push(new SceneCell(pg.players[i], i));
         }
         objs.push(scenePlayer);
     }
@@ -570,11 +561,13 @@ function TestFoo()
     FillEatable(game);
 
     Split(0,0);
-    console.log(Update(0)[0].cells);
-    console.log(Update(0)[0].cells);
-    console.log(Update(0)[0].cells);
-    console.log(Update(0)[0].cells);
-    console.log(Update(0)[0].cells);
+    console.log(Update(0));
+    console.log(Update(0));
+    ret = Join('p2');
+    console.log(Update(0));
+    ret = Join('p3');
+    console.log(Update(0));
+    console.log(Update(0));
 }
 
 //TestFoo();
