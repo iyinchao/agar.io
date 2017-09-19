@@ -66,6 +66,24 @@ class Overlay {
   show (dom) {
     dom.classList.remove('hidden')
   }
+  setLeaderBoard (list) {
+    let html = ''
+    if (Array.isArray(list) && list.length) {
+      list.forEach((item) => {
+        html += `<div class="name ${item.id === this.game.$info.myId ? 'self' : ''}">\
+          ${item.rank}.$nbsp;${item.name}\
+          </div>`
+      })
+    }
+
+    if (!html) {
+      this.hide(this.refs.leaderBoard)
+    } else {
+      this.show(this.refs.leaderBoard)
+    }
+
+    this.refs.leaderBoard.innerHTML = html
+  }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {
       this.game.$myPlayerName = this.refs.textNick.value

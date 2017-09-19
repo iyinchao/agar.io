@@ -7,6 +7,20 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
+  #leader-board {
+    width: 220px;
+    height: 500px;
+    background-color: rgba(black ,0.5);
+    border-radius: $borderRadius;
+    box-shadow: $boxShadow1;
+    pointer-events: none;
+    position: absolute;
+    right: 0;
+    top: 0;
+    &.hidden {
+      display: none;
+    }
+  }
   .panel {
     background-color: rgb(238, 238, 238);
     display: inline-block;

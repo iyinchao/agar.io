@@ -84,7 +84,7 @@ export class Player extends Character {
           this._cells[index].parent = this
           this._cells[index].update = this.updateCell.bind(this._cells[index])
           //
-          this._cells[index].r = cell.radius
+          this._cells[index].r = cell.radius ? cell.radius : cell.r
         })
       }
     })
@@ -141,7 +141,7 @@ export class Player extends Character {
     this.parent.game.$graphics.lineWidth = 0
   }
   destroy () {
-    super.destroy()
+    this.text.destroy()
   }
 }
 
