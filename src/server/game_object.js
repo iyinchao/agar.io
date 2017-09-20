@@ -42,6 +42,7 @@ function ScenePlayer(_t, pg, _op)
     return {
         id: pg.id,
         t: _t,
+        weight: 0,
         op: _op,
         name: pg.name,
         x: parseInt(pg.center[0]),

@@ -354,7 +354,10 @@ function CollideWithObject(player, obj, game)
             game.changeObj.push(new DeleteSceneObject(obj));
         }
         if (obj.type == OBJECT_TYPE.VIRUS) {
+            game.virusCount--;
             return DoMultiSplit(player);
+        } else if (obj.type == OBJECT_TYPE.FOOD) {
+            game.foodCount--;
         }
     }
     return [];
@@ -438,6 +441,7 @@ function ExtractPlayerScenePlayers(game)
         }
         for (var i = 0; i < pg.players.length; ++i) {
             scenePlayer.cells.push(new SceneCell(pg.players[i], i));
+            scenePlayer.weight += pg.players[i].weight;
         }
         objs.push(scenePlayer);
     }
@@ -463,6 +467,7 @@ function ExtractPlayerScene(game)
         var scenePlayer = new ScenePlayer(OBJECT_TYPE.PLAYER, pg, 1);
         for (var i = 0; i < pg.players.length; ++i) {
             scenePlayer.cells.push(new SceneCell(pg.players[i], i, 1));
+            scenePlayer.weight += pg.players[i].weight;
         }
         objs.push(scenePlayer);
     }

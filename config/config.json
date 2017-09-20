@@ -17,7 +17,7 @@
 		"splitMass": 180
 	},
 
-    "sizeToEat": 1.2,
+    "sizeToEat": 1,
     "movePeriod": 0.02,
     "maxFood": 1000,
     "maxVirus": 50,
