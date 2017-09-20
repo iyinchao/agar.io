@@ -216,13 +216,14 @@ io.on('connection', function(socket){
 
 function sceneUpdate()
 {
+	var diff = [];
 	update_counter++;
 	Object.keys(activeGames).forEach(function(key){
-		var diff = game.Update(key);
+		diff[key] = game.Update(key);
 		for(var i = 0; i < activeGames[key].length; i++)
 		{
 			console.log("<===socket.id " + activeGames[key][i].socketID + " recvd updates:"+update_counter);
-			sockets[activeGames[key][i].socketID].emit('scene-diff', diff);
+			sockets[activeGames[key][i].socketID].emit('scene-diff', diff[key]);
 		}
 	});
 }
