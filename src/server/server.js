@@ -12,7 +12,7 @@ var ret_data = require("./ret_data");
 
 
 var users = [];
-var sockets = [];
+var sockets = {};
 var c = require('../../config/config.json');
 var util = require('./util');
 var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
@@ -20,7 +20,7 @@ var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 
 //server.listen(8080);
 var game = require('./game');
-var activeGames = []; //用来保存所有的游戏场景id
+var activeGames = {}; //用来保存所有的游戏场景id
 
 var logger_style = {
     level: 'auto',
@@ -169,7 +169,8 @@ io.on('connection', function(socket){
 			console.log("Player "+player.nickname+" joined");
 			socket.emit('scene-setup', ret_value);
 			sockets[socket.id] = socket; //将玩家的socket记录下来
-			if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
+			//if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
+			if(Object.keys(activeGames).indexOf(ret_value.gameId) === -1)//新的游戏场景
 			{
 				console.log("1111111socket.id: "+socket.id);
 				console.log("1111111gameId: "+ret_value.gameId);
@@ -226,6 +227,7 @@ function sceneUpdate()
 		{
 			console.log("<===socket.id " + activeGames[key][i].socketID + " recvd updates:"+update_counter);
 			sockets[activeGames[key][i].socketID].emit('scene-diff', diff[key]);
+			//io.emit('scene-diff', diff[key]);
 		}
 	});
 }
