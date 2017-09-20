@@ -25,6 +25,7 @@ var logger_style = {
 };
 
 var counter = 0;
+var update_counter = 0;
 // setup global logger
 server.use(log4js.connectLogger(logger, logger_style));
 
@@ -192,7 +193,7 @@ io.on('connection', function(socket){
 
 		socket.on('op', function(op){
 			counter++;
-			console.log("Recv player instructor, socket.id " + socket.id+ " counter: " + counter);
+			console.log("===>socket.id " + socket.id+ " counter: " + counter);
 			if(op.t === "mv")//player move
 			{
 				game.Move(op.gameID, op.userID, op.x, op.y);
@@ -215,10 +216,12 @@ io.on('connection', function(socket){
 
 function sceneUpdate()
 {
+	update_counter++;
 	Object.keys(activeGames).forEach(function(key){
 		var diff = game.Update(key);
 		for(var i = 0; i < activeGames[key].length; i++)
 		{
+			console.log("<===socket.id " + socket.id + " recvd updates:"+update_counter);
 			sockets[activeGames[key][i].socketID].emit('scene-diff', diff);
 		}
 	});
