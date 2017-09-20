@@ -221,7 +221,7 @@ function sceneUpdate()
 		var diff = game.Update(key);
 		for(var i = 0; i < activeGames[key].length; i++)
 		{
-			console.log("<===socket.id " + socket.id + " recvd updates:"+update_counter);
+			console.log("<===socket.id " + activeGames[key][i].socketID + " recvd updates:"+update_counter);
 			sockets[activeGames[key][i].socketID].emit('scene-diff', diff);
 		}
 	});
