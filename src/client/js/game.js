@@ -444,9 +444,9 @@ const States = {
       // this.game.getViewRect()
     },
     render () {
-      this.game.debug.cameraInfo(this.game.camera, 32, 64)
-      this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
       if (process.env.NODE_ENV === 'development') {
+        this.game.debug.cameraInfo(this.game.camera, 32, 64)
+        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
     }
