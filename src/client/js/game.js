@@ -66,8 +66,9 @@ const States = {
             }
           })
         }
-
-        this.g.$overlay.hide(this.g.$overlay.refs.mask)
+        setTimeout(() => {
+          this.g.$overlay.setState('gaming')
+        }, 500)
       })
 
       this.g.$ws.on('scene-diff', (e) => {
@@ -104,15 +105,15 @@ const States = {
                   case 0:
                     // Sync data
                     p = this.g.getCharacter('player', diff.id)
-                    const props = Object.keys(diff)
+                    const props = Object.keys(deleteOp(diff))
                     props.forEach((prop) => {
                       p[prop] = diff[prop]
                     })
-
                     break
                   case -1:
                     if (diff.id === this.g.$info.myId) {
-                      alert('died')
+                      // Die logic
+                      this.g.$overlay.setState('died')
                     }
                     p = this.g.removeCharacter('player', diff.id)
                     p.destroy()
@@ -120,23 +121,6 @@ const States = {
                     break
                 }
                 break
-              // case 1:
-              //   // player
-              //   // do diff here... fuck this shit.
-              //   const idx = ids.indexOf(diff.id)
-              //   if (idx > -1) {
-              //     const p = this.g.getCharacter('player', diff.id)
-              //     // console.log(diff.id, ids, diff, p)
-              //     this.g.syncPlayeProps(
-              //       p,
-              //       diff
-              //     )
-              //     // remove updated id
-              //     ids.splice(idx, 1)
-              //   } else {
-              //     this.g.addCharacter('player', diff)
-              //   }
-              //   break
             }
           })
           // delete
@@ -243,6 +227,7 @@ const States = {
       // })
 
       this.g.$ws.connect()
+      this.g.$overlay.setState('joining')
 
       //this.game.$myPlayerId = 1
       // this.game.addCharacter('player', {
@@ -298,12 +283,15 @@ const States = {
         if (process.env.NODE_ENV === 'development') {
           this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
           this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
+
+          this.g.$graphics.lineStyle(2, 0xd75cf6, 1)
+          this.g.$graphics.moveTo(player.x, player.y)
+          this.g.$graphics.lineTo(mX, mY)
+          this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
 
-        this.game.$graphics.lineStyle(0, 0x000000, 0)
         this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
         this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
-
         // this.g.camera.scale.setTo(2, 2)
       }
 
@@ -312,13 +300,6 @@ const States = {
         this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
         this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
         this.game.$graphics.lineStyle(0, 0x000000, 0)
-
-        if (player) {
-          this.g.$graphics.lineStyle(2, 0xd75cf6, 1)
-          this.g.$graphics.moveTo(player.x, player.y)
-          this.g.$graphics.lineTo(mX, mY)
-          this.game.$graphics.lineStyle(0, 0x000000, 0)
-        }
       }
 
 
@@ -348,7 +329,7 @@ const States = {
           return 0
         })
 
-        const rankIds = ids.slice(0, 3)
+        const rankIds = ids.slice(0, 5)
         const rankData = rankIds.map((id, index) => {
           return {
             id,

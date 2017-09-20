@@ -59,7 +59,6 @@ export class Player extends Character {
     }
 
     this._largestCellIndex = 0
-    this.weight = 0
 
     Object.defineProperty(this, 'cells', {
       get: function () {
@@ -69,7 +68,6 @@ export class Player extends Character {
         if (Array.isArray(value)) {
           this._cells = value
         }
-        let totalR = 0
         let largestR = 0
         let largestIndex = 0
         this._cells.forEach((cell, index) => {
@@ -79,11 +77,9 @@ export class Player extends Character {
             largestR = this._cells[index].r
             largestIndex = index
           }
-          totalR += this._cells[index].r
           // this._cells[index].r = cell.radius ? cell.radius : cell.r
         })
         this._largestCellIndex = largestIndex
-        this.weight = totalR
       }
     })
 
