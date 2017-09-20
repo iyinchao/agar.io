@@ -162,8 +162,6 @@ io.on('connection', function(socket){
 			nickname: "jack"
 		};
 
-		socket.on();
-
 		socket.on('join', function(player){
 			var ret_value = game.Join(player.nickname);
 			currentPlayer = player;
