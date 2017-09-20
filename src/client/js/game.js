@@ -348,7 +348,7 @@ const States = {
           return 0
         })
 
-        const rankIds = ids.slice(0, 10)
+        const rankIds = ids.slice(0, 3)
         const rankData = rankIds.map((id, index) => {
           return {
             id,
@@ -530,7 +530,7 @@ const Callbacks = {
 class Game extends Phaser.Game {
   constructor (options) {
     const canvas = document.querySelector('#canvas-wrapper')
-    super(800, 600, Phaser.AUTO, canvas, null, true, true)
+    super(800, 600, Phaser.CANVAS, canvas, null, true, true)
 
     this.$canvas = canvas
     this.$states = States

@@ -8,8 +8,8 @@
   bottom: 0;
   pointer-events: none;
   #leader-board {
-    min-width: 200px;
-    background-color: rgba(black ,0.5);
+    min-width: 150px;
+    background-color: rgba(black ,0.3);
     border-radius: $borderRadius;
     box-shadow: $boxShadow1;
     pointer-events: none;
@@ -25,7 +25,7 @@
       text-shadow: 1px 1px 3px rgba(black, 0.8);
     }
     .name {
-      color: rgba(white, 0.8);
+      color: rgba(white, 0.9);
       text-shadow: 1px 1px 3px rgba(black, 0.8);
       padding: 5px 0;
       &:first-child {
