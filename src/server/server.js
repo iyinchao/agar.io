@@ -236,6 +236,7 @@ server.all("/*", checker);
 server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
+server.get("/top", on_top_n);
 
 setInterval(sceneUpdate, 25);
 
