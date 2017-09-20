@@ -24,6 +24,7 @@ var logger_style = {
     level: 'auto',
 };
 
+var counter = 0;
 // setup global logger
 server.use(log4js.connectLogger(logger, logger_style));
 
@@ -190,7 +191,8 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('op', function(op){
-			console.log("Recv player instructor, socket.id" + socket.id);
+			counter++;
+			console.log("Recv player instructor, socket.id " + socket.id+ " counter: " + counter);
 			if(op.t === "mv")//player move
 			{
 				game.Move(op.gameID, op.userID, op.x, op.y);
