@@ -172,11 +172,13 @@ io.on('connection', function(socket){
 			//if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
 			if(Object.keys(activeGames).indexOf(ret_value.gameId) === -1)//新的游戏场景
 			{
+				console.log("Key:"+Object.keys(activeGames).indexOf(ret_value.gameId));
 				console.log("1111111socket.id: "+socket.id);
 				console.log("1111111gameId: "+ret_value.gameId);
 				console.log("1111111playerID: "+ret_value.playerMainId);
 				var player_and_socket = [];
 				player_and_socket.push({
+					playerIP:socket.request.connection.remoteAddress,
 					playerID:ret_value.playerMainId,
 					socketID:socket.id
 				});
@@ -188,10 +190,12 @@ io.on('connection', function(socket){
 				console.log("gameId: "+ret_value.gameId);
 				console.log("playerID: "+ret_value.playerMainId);
 				activeGames[ret_value.gameId].push({
+					playerIP:socket.request.connection.remoteAddress,
 					playerID:ret_value.playerMainId,
 					socketID:socket.id
 				});
 			}
+			console.log("IP: "+ socket.request.connection.remoteAddress);
 		});
 
 		socket.on('op', function(op){
@@ -238,7 +242,7 @@ server.get("/login", on_login);
 server.get("/logout", on_exit);
 server.get("/top", on_top_n);
 
-setInterval(sceneUpdate, 25);
+setInterval(sceneUpdate, 1000);
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
