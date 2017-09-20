@@ -31,13 +31,12 @@ const States = {
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
         this.g.$ws.emit('join', {
-          nickname: this.g.$myPlayerName
+          nickname: this.g.$info.myName
         })
       })
 
       this.g.$ws.on('joined', (e) => {
         console.log('[ws] You are joined!', e)
-        this.g.$info = {}
         this.g.$info.gameId = e.gameID
         this.g.$info.userId = e.userID
       })
@@ -112,8 +111,11 @@ const States = {
 
                     break
                   case -1:
+                    if (diff.id === this.g.$info.myId) {
+                      alert('died')
+                    }
                     p = this.g.removeCharacter('player', diff.id)
-                    p.destory()
+                    p.destroy()
                     p = null
                     break
                 }
@@ -268,12 +270,10 @@ const States = {
 
       this.g.$renderList = []
 
-      // Set cam
       let player
-      if (this.g.$info.myId !== undefined) {
-        player = this.g.getCharacter('player', this.g.$info.myId)
-      }
+      player = this.g.getCharacter('player', this.g.$info.myId)
 
+      // Set cam
       if (player && player.cells && player.cells.length) {
         let playerBound
         player.cells.forEach((cell) => {
@@ -300,7 +300,6 @@ const States = {
           this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
         }
 
-
         this.game.$graphics.lineStyle(0, 0x000000, 0)
         this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
         this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
@@ -308,10 +307,21 @@ const States = {
         // this.g.camera.scale.setTo(2, 2)
       }
 
-      const rect = this.game.getViewRect()
-      this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
-      this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
-      this.game.$graphics.lineStyle(0, 0x000000, 0)
+      if (process.env.NODE_ENV === 'development') {
+        const rect = this.game.getViewRect()
+        this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
+        this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
+        this.game.$graphics.lineStyle(0, 0x000000, 0)
+
+        if (player) {
+          this.g.$graphics.lineStyle(2, 0xd75cf6, 1)
+          this.g.$graphics.moveTo(player.x, player.y)
+          this.g.$graphics.lineTo(mX, mY)
+          this.game.$graphics.lineStyle(0, 0x000000, 0)
+        }
+      }
+
+
 
 
       // this.game.camera.x = camX
@@ -326,10 +336,40 @@ const States = {
       if (leaderBoardTimer > 40) {
         // Generate leader info
         const ids = Array.from(this.g.$playerList.keys())
-        // ids.sort((a, b) => {
-        //   // if (this.g.$playerList.get(a).)
-        // })
-        console.log('in')
+        ids.sort((a, b) => {
+          const wa = this.g.$playerList.get(a).weight
+          const wb = this.g.$playerList.get(b).weight
+          if (wa > wb) {
+            return -1
+          }
+          if (wa < wb) {
+            return 1
+          }
+          return 0
+        })
+
+        const rankIds = ids.slice(0, 3)
+        const rankData = rankIds.map((id, index) => {
+          return {
+            id,
+            rank: index + 1,
+            name: this.g.$playerList.get(id).name,
+            weight: this.g.$playerList.get(id).weight
+          }
+        })
+
+        if (player && rankIds.indexOf(this.g.$info.myId) === -1) {
+          rankData.push({
+            id: this.g.$info.myId,
+            rank: ids.indexOf(this.g.$info.myId) + 1,
+            name: player.name,
+            weight: player.weight
+          })
+        }
+
+        // Update leaderboard
+        this.g.$overlay.setLeaderBoard(rankData)
+
         leaderBoardTimer = -1
       }
       leaderBoardTimer++
@@ -404,9 +444,9 @@ const States = {
       // this.game.getViewRect()
     },
     render () {
-      this.game.debug.cameraInfo(this.game.camera, 32, 64)
-      this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
       if (process.env.NODE_ENV === 'development') {
+        this.game.debug.cameraInfo(this.game.camera, 32, 64)
+        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
     }
@@ -476,8 +516,7 @@ const Callbacks = {
           gameID: this.game.$info.gameId
         })
         break
-      case 'w':
-      case 'W':
+      case 'keyW':
         this.game.$ws.emit('op', {
           t: 'w',
           userID: this.game.$info.userId,
@@ -491,7 +530,7 @@ const Callbacks = {
 class Game extends Phaser.Game {
   constructor (options) {
     const canvas = document.querySelector('#canvas-wrapper')
-    super(800, 600, Phaser.AUTO, canvas, null, true, true)
+    super(800, 600, Phaser.CANVAS, canvas, null, true, true)
 
     this.$canvas = canvas
     this.$states = States

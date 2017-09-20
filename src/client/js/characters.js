@@ -39,23 +39,10 @@ export class Player extends Character {
   constructor (options) {
     super(options)
     this._hexColor = this.hueToHex(this.hue)
-    this._hexFillColor = parseInt(TinyColor({h: this.hue, s: 100, v: 100}).darken(10).toHex(), 16)
+    this._hexFillColor = parseInt(
+      TinyColor({h: this.hue, s: 100, v: 100}).darken(10).toHex(),
+      16)
 
-    // this.cells = []
-
-    // this.cells = options.cells.map((cell, index) => {
-    //   return new Cell({
-    //     id: this.id,
-    //     _cellId: index,
-    //     hue: this.hue,
-    //     _hexColor: this._hexColor,
-    //     _hexFillColor: this._hexFillColor,
-    //     radius: cell.radius,
-    //     game: this.game,
-    //     x: cell.x,
-    //     y: cell.y
-    //   })
-    // })
     this.text = this.game.add.text(0, 0, this.name, {
       font: 'bold 32px Arial',
       fill: '#FFF',
@@ -64,13 +51,15 @@ export class Player extends Character {
     })
     this.text.anchor.setTo(0.5)
 
-
     this._cells = []
     try {
       this._cells = JSON.parse(JSON.stringify(this.cells))
     } catch (e) {
       // slient
     }
+
+    this._largestCellIndex = 0
+    this.weight = 0
 
     Object.defineProperty(this, 'cells', {
       get: function () {
@@ -80,32 +69,43 @@ export class Player extends Character {
         if (Array.isArray(value)) {
           this._cells = value
         }
+        let totalR = 0
+        let largestR = 0
+        let largestIndex = 0
         this._cells.forEach((cell, index) => {
           this._cells[index].parent = this
           this._cells[index].update = this.updateCell.bind(this._cells[index])
-          //
-          this._cells[index].r = cell.radius ? cell.radius : cell.r
+          if (this._cells[index].r > largestR) {
+            largestR = this._cells[index].r
+            largestIndex = index
+          }
+          totalR += this._cells[index].r
+          // this._cells[index].r = cell.radius ? cell.radius : cell.r
         })
+        this._largestCellIndex = largestIndex
+        this.weight = totalR
       }
     })
 
     this.cells = this._cells
   }
   update () {
-    let largest = 0 // Largest cell index
-    let largestR = 0
-    if (this.cells && this.cells.length) {
-      this.cells.forEach((cell, index) => {
-        if (cell.r > largestR) {
-          largest = index
-          largestR = cell.r
-        }
-      })
-    }
+    // let largest = 0 // Largest cell index
+    // let largestR = 0
+    // if (this.cells && this.cells.length) {
+    //   this.cells.forEach((cell, index) => {
+    //     if (cell.r > largestR) {
+    //       largest = index
+    //       largestR = cell.r
+    //     }
+    //   })
+    // }
 
-    this.text.x = this.cells[largest].x
-    this.text.y = this.cells[largest].y
-    this.text.fontSize = this.cells[largest].r > 60 ? 32 : this.cells[largest].r / 2
+    this.text.x = this.cells[this._largestCellIndex].x
+    this.text.y = this.cells[this._largestCellIndex].y
+    this.text.fontSize = this.cells[this._largestCellIndex].r > 60
+      ? 32
+      : this.cells[this._largestCellIndex].r / 2
 
       // let largest = 0 // Largest cell index
       // let largestR = 0
@@ -164,8 +164,9 @@ export class Food extends Character {
     // this.game.drawCircle(this.x, this.y, this.r, 6)
 
     this.game.$graphics.beginFill(this._hexColor)
-    this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
-
+    // this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
+    this.game.drawCircle(this.x, this.y, this.r, 8)
+    this.game.$graphics.endFill()
     // Generate polygon points
 
     // this.game.$graphics.beginFill(this._hexColor)
