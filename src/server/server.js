@@ -1,21 +1,23 @@
 'use strict';
 var express = require("express");
 var session = require("express-session");
-
+var server = new express();
+var http = require('http').createServer(server);
+var io = require('socket.io').lister(http);
 var account_handler = require("./account_handler");
 var logger = require("./logger").logger();
 var log4js = require("./logger").log4js;
 var ret_data = require("./ret_data");
 //zxt
-var http = require('http').Server(server);
-var io = require('socket.io')(http);
+
+
 var users = [];
 var sockets = [];
 var c = require('../../config/config.json');
 var util = require('./util');
 var initMassLog = util.log(c.defaultPlayerMass, c.slowBase);
 //zxt
-var server = new express();
+
 //server.listen(8080);
 var game = require('./game');
 var activeGames = []; //用来保存所有的游戏场景id
@@ -159,6 +161,8 @@ io.on('connection', function(socket){
 		var currentPlayer = {
 			nickname: "jack"
 		};
+
+		socket.on();
 
 		socket.on('join', function(player){
 			var ret_value = game.Join(player.nickname);
