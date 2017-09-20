@@ -232,7 +232,7 @@ server.get("/register", on_register);
 server.get("/login", on_login);
 server.get("/logout", on_exit);
 
-setInterval(sceneUpdate, 1000/c.networkUpdateFactor);
+setInterval(sceneUpdate, 25);
 
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
