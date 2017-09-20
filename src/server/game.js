@@ -286,7 +286,7 @@ function DoMultiSplit(player)
 
 function DoBinSplit(player, cosx, sinx)
 {
-    if (player.radius / 1.414 < cfg.minPlayerRadius) {
+    if (player.radius / 1.414 < cfg.playerMinRadius) {
         GameLog("-", "*", "Split radius too small");
         return null;
     }

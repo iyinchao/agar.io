@@ -28,7 +28,7 @@
 
     "playerWeight": 200,
     "playerWeightToRegion": 1,
-    "playerMinRadius": 10,
+    "playerMinRadius": 15,
     "splitDistanceToRadius": 3,
     "ejectDistanceToRadius": 2,
     "maxCellCount": 16,
