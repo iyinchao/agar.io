@@ -158,7 +158,6 @@ function on_exit(req, rsp)
 
 function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 {
-	//var len = activeGames.length;
 	var first_pos = -1;
 	for(var i=0;i<10000;i++)
 	{
@@ -180,8 +179,8 @@ function deleteSocketRecord(gameid, playerid)
 	{
 		if(activeGames[i] !== undefined && activeGames[i].gameid === gameid && activeGames[i].playerid === playerid)
 		{
-			console.log("activeGames["+i+"].gameid:"+activeGames[i].gameid);
-			console.log("activeGames["+i+"].playerid:"+activeGames[i].playerid);
+			//console.log("activeGames["+i+"].gameid:"+activeGames[i].gameid);
+			//console.log("activeGames["+i+"].playerid:"+activeGames[i].playerid);
 			activeGames[i].gameid = -1;
 			activeGames[i].playerid = -1;
 			activeGames[i] = undefined;
@@ -204,40 +203,9 @@ io.on('connection', function(socket){
 			console.log("Player "+player.nickname+" joined");
 			socket.emit('scene-setup', ret_value);
 			sockets[socket.id] = socket; //将玩家的socket记录下来
-			//if(util.findIndex(activeGames, ret_value.gameId) === -1) //新的游戏场景
-			//if(Object.keys(activeGames).indexOf(ret_value.gameId) === -1)//新的游戏场景
-			//{
-				//console.log("Key:"+Object.keys(activeGames).indexOf(ret_value.gameId));
-				//console.log("1111111socket.id: "+socket.id);
-				//console.log("1111111gameId: "+ret_value.gameId);
-				//console.log("1111111playerID: "+ret_value.playerMainId);
-				//var player_and_socket = [];
-				//player_and_socket.push({
-					//playerIP:socket.request.connection.remoteAddress,
-					//playerID:ret_value.playerMainId,
-					//socketID:socket.id
-				//});
-				//activeGames[ret_value.gameId] = player_and_socket;
-			//}
-			//else//游戏已存在，只是玩家是新加入的
-			//{
-				//console.log("socket.id: "+socket.id);
-				//console.log("gameId: "+ret_value.gameId);
-				//console.log("playerID: "+ret_value.playerMainId);
-				//activeGames[ret_value.gameId].push({
-				//	playerIP:socket.request.connection.remoteAddress,
-				//	playerID:ret_value.playerMainId,
-				//	socketID:socket.id
-				//});
-			//}
-			//console.log("IP: "+ socket.request.connection.remoteAddress);
-			//console.log("socket.id: "+socket.id);
-			//console.log("gameId: "+ret_value.gameId);
-			//console.log("playerID: "+ret_value.playerMainId);
 			var pos = -1;
 			for(var i=0;i<10000;i++)
 			{
-				//console.log("Location 1");
 				if(activeGames[i]!== undefined && activeGames[i].gameid === ret_value.gameId && activeGames[i].playerid === ret_value.playerMainId)
 				{
 					pos = i;
@@ -245,13 +213,11 @@ io.on('connection', function(socket){
 			}
 			if(pos === -1)
 			{
-				//console.log("Location 2");
 				insertNewSocketRecord(ret_value.gameId, ret_value.playerMainId, socket.id, socket.request.connection.remoteAddress);
 			}
 
 			for(var i=0;i<10000;i++)
 			{
-				//console.log("Location 1");
 				if(activeGames[i]!== undefined)
 				{
 					console.log("NewPlayer_GameID :" + activeGames[i].gameid);
@@ -264,8 +230,6 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('op', function(op){
-			//counter++;
-			//console.log("===>socket.id " + socket.id+ " counter: " + counter);
 			if(op.t === "mv")//player move
 			{
 				game.Move(op.gameID, op.userID, op.x, op.y);
@@ -292,16 +256,6 @@ io.on('connection', function(socket){
 function sceneUpdate()
 {
 	var diff = [];
-	//update_counter++;
-	//Object.keys(activeGames).forEach(function(key){
-	//	diff[key] = game.Update(key);
-	//	for(var i = 0; i < activeGames[key].length; i++)
-	//	{
-	//		console.log("<===socket.id " + activeGames[key][i].socketID + " recvd updates:"+update_counter);
-	//		sockets[activeGames[key][i].socketID].emit('scene-diff', diff[key]);
-			//io.emit('scene-diff', diff[key]);
-	//	}
-	//});
 	for(var i=0;i<1000;i++)
 	{
 		if(activeGames[i] !== undefined)
