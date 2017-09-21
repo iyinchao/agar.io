@@ -121,6 +121,8 @@ function GenerateGameObject(type)
     return obj;
 }
 
+var sta = 0;
+
 function FillEatable(game)
 {
     while (game.foodCount < cfg.maxFood) {
@@ -128,6 +130,9 @@ function FillEatable(game)
         food.id = game.curObjId++;
         game.others[food.id] = food;
         game.foodCount++;
+        food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
+        food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
+        sta++;
         game.changeObj.push(new NewSceneObject(food));
     }
 
@@ -343,6 +348,8 @@ function UpdatePosition(pg)
     }
 }
 
+var beEat = 0;
+
 function CollideWithObject(player, obj, game)
 {
     var dis = util.Distance(player, obj);
@@ -358,6 +365,7 @@ function CollideWithObject(player, obj, game)
             return DoMultiSplit(player);
         } else if (obj.type == OBJECT_TYPE.FOOD) {
             game.foodCount--;
+            beEat++;
         }
     }
     return [];
@@ -478,6 +486,8 @@ function ExtractPlayerScene(game)
     return objs;
 }
 
+var pea = 0;
+
 function Update(_gameId)
 {
     var game = gameRefs[_gameId];
@@ -502,6 +512,9 @@ function Update(_gameId)
     FillEatable(game);
     var allObjs = game.changeObj;
     game.changeObj = [];
+    if (++pea % 100 == 0)
+        console.log(beEat);
+
     return allObjs;
 }
 
