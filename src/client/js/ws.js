@@ -21,12 +21,12 @@ if (process.env.NODE_ENV === 'development') {
 
 export class WS {
   constructor () {
-    this.socket = io(
+    this.socket = this.factory()
+  }
+  factory () {
+    return io(
       url,
-      {
-        autoConnect: false
-      }
-    )
+      { autoConnect: false })
   }
   on (type, cb) {
     return this.socket.on(type, cb)
@@ -38,7 +38,12 @@ export class WS {
     this.socket.open()
   }
   disconnect () {
-    this.socket.close()
+    this.socket.disconnect()
+  }
+  renew () {
+    this.disconnect()
+    this.socket = null
+    this.socket = this.factory()
   }
 }
 

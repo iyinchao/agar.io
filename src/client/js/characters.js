@@ -161,7 +161,7 @@ export class Food extends Character {
 
     this.game.$graphics.beginFill(this._hexColor)
     // this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
-    this.game.drawCircle(this.x, this.y, this.r, 8)
+    this.game.drawCircle(this.x, this.y, this.r, 7)
     this.game.$graphics.endFill()
     // Generate polygon points
 

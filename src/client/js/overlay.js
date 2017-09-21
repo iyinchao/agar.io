@@ -59,6 +59,9 @@ class Overlay {
     this.refs.btStartGame.addEventListener('click', (e) => {
       this.onBtStartGameClick(e)
     })
+    this.refs.btReborn.addEventListener('click', (e) => {
+      this.onBtRebornClick(e)
+    })
   }
   hide (dom) {
     dom.classList.add('hidden')
@@ -102,6 +105,15 @@ class Overlay {
     }
 
     this.refs.leaderBoardContent.innerHTML = html
+  }
+  onBtRebornClick (e) {
+    this.game.reborn()
+      .then(() => {
+
+      })
+      .catch((e) => {
+        console.log(e)
+      })
   }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {

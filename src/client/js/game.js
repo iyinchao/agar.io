@@ -1,4 +1,5 @@
 import { throttle } from 'lodash'
+import Promise from 'bluebird'
 /* eslint-disable no-unused-vars */
 import Pixi from 'pixi'
 import P2 from 'p2'
@@ -35,9 +36,11 @@ const States = {
 
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
-        this.g.$ws.emit('join', {
-          nickname: this.g.$info.myName
-        })
+        setTimeout(() => {
+          this.g.$ws.emit('join', {
+            nickname: this.g.$info.myName
+          })
+        }, 1500)
       })
 
       this.g.$ws.on('joined', (e) => {
@@ -71,9 +74,7 @@ const States = {
             }
           })
         }
-        setTimeout(() => {
-          this.g.$overlay.setState('gaming')
-        }, 500)
+        this.g.$overlay.setState('gaming')
       })
 
       this.g.$ws.on('scene-diff', (e) => {
@@ -132,10 +133,6 @@ const States = {
           //   this.g.removeCharacter('player', id)
           // })
         }
-      })
-
-      this.g.$ws.on('exited', (e) => {
-
       })
     },
     create () {
@@ -385,14 +382,8 @@ const States = {
     },
     shutdown () {
       // Exit game
-      this.g.$ws.on('exited', () => {
-        // Reset socket
-      })
 
-      this.g.$ws.emit('exit', {
-        userID: this.g.$info.myId,
-        gameID: this.g.$info.gameId
-      })
+
 
       // Clear up data
       this.g.$graphics.clear()
@@ -498,11 +489,28 @@ class Game extends Phaser.Game {
     this.$info = {}
 
     this.state.add('game', States.game)
+    this.state.add('idle', States.idle)
   }
-  syncPlayeProps (player, diff) {
-    player.cells = diff.cells
-    player.x = diff.x
-    player.y = diff.y
+  reborn () {
+    return new Promise((resolve, reject) => {
+      if (this.state.current === 'game') {
+        // Exit game
+        this.$ws.on('exited', () => {
+          resolve()
+        })
+
+        this.$ws.emit('exit', {
+          userID: this.$info.myId,
+          gameID: this.$info.gameId
+        })
+      } else {
+        reject(new Error('not-in-game'))
+      }
+    }).then(() => {
+      this.$ws = this.$ws.renew()
+    }).then(() => {
+      this.game.state.start('idle')
+    })
   }
   drawCircle (x, y, r, edges = 40) {
     // Generate polygon points
