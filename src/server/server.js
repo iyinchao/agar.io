@@ -158,6 +158,7 @@ function on_exit(req, rsp)
 
 function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 {
+	console.log("Inserting user");
 	var first_pos = -1;
 	for(var i=0;i<10000;i++)
 	{
@@ -193,10 +194,10 @@ io.on('connection', function(socket){
 		var currentPlayer = {
 			nickname: "jack"
 		};
-
+		
 		socket.on('join', function(player){
 			var ret_value = game.Join(player.nickname);
-			currentPlayer = player;
+			currentPlayer.nickname = player.nickname;
 			currentPlayer.gameid = ret_value.gameId;
 			currentPlayer.playerid = ret_value.playerMainId;
 			socket.emit('joined', {gameID: ret_value.gameId, userID:ret_value.playerMainId});
@@ -210,6 +211,13 @@ io.on('connection', function(socket){
 				{
 					pos = i;
 				}	
+				if(activeGames[i]!== undefined && activeGames[i].playerip === socket.request.connection.remoteAddress)
+				{
+					console.log("Zombie is to be deleted");
+					console.log("PlayerIP:"+activeGames[i].playerip);
+					game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+					deleteSocketRecord(activeGames[i].gameid, activeGames[i].playerid);
+				}
 			}
 			if(pos === -1)
 			{
@@ -243,12 +251,42 @@ io.on('connection', function(socket){
 				game.Split(op.gameID, op.userID);
 			}
 		});
-
+		socket.on('playerchart',function(message){
+			var msg_sender = message.sender.replace(/(<([^>]+)>)/ig, '');
+			var msg_text = message.text.replace(/(<([^>]+)>)/ig, '');
+			var game_id = -1;
+			for(var i=0;i<10000;i++)
+			{
+				if(activeGames[i].socketid === socket.id)
+				{
+					game_id = activeGames[i].gameid;
+				}
+			}
+			for(var i=0;i<10000;i++)
+			{
+				if(activeGames[i].gametid === game_id)
+				{
+					sockets[activeGames[i].socketid].emit('playerchatbroadcast',{sender:msg_sender, text:msg_text.substring(0,35)});
+				}
+			}
+		});
 		socket.on('disconnect', function(){
-			console.log('[INFO] Player ' + currentPlayer.nickname + ' disconnected!!');
-			console.log('[INFO] Player ' + currentPlayer.gameid + ' disconnected!!');
-			console.log('[INFO] Player ' + currentPlayer.playerid + ' disconnected!!');
-			deleteSocketRecord(currentPlayer.gameid, currentPlayer.playerid);
+			console.log('[INFO] Player_name[' + currentPlayer.nickname + '] disconnected!!');
+			console.log('[INFO] Player_GameID[' + currentPlayer.gameid + '] disconnected!!');
+			console.log('[INFO] Player_PlayerID[' + currentPlayer.playerid + '] disconnected!!');
+			//game.Exit(currentPlayer.gameid, currentPlayer.playerid);
+			//deleteSocketRecord(currentPlayer.gameid, currentPlayer.playerid);
+		});
+
+		socket.on('exit', function(message){
+			socket.emit('exited', "You are exited!");
+			console.log('[INFO] Player_name[' + currentPlayer.nickname + '] exited!');
+			console.log('[INFO] Player_GameID[' + currentPlayer.gameid + '] exited!');
+			console.log('[INFO] Player_PlayerID[' + currentPlayer.playerid + '] exited!');
+			if(message.gameID !== undefined && message.userID !== undefined)
+			{
+				game.Exit(message.gameID, message.userID);
+			}
 		});
 
 });
