@@ -122,6 +122,7 @@ function GenerateGameObject(type)
 }
 
 var sta = 0;
+var beGen = 0;
 
 function FillEatable(game)
 {
@@ -133,6 +134,7 @@ function FillEatable(game)
         food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
         food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
         sta++;
+        beGen++;
         game.changeObj.push(new NewSceneObject(food));
     }
 
@@ -251,14 +253,14 @@ function Move(_gameId, _playerId, dirX, dirY)
     pg.dir = [dirX, dirY];
     for (var id in pg.players) {
         var player = pg.players[id];
-        player.speed = (cfg.weightXspeed / player.weight);
-        player.speed = player.speed < cfg.minSpeed ? cfg.minSpeed : player.speed;
+        UpdateAttr(player);
     }
 }
 
 function UpdateAttr(player)
 {
-    player.speed = (cfg.weightXspeed / player.weight);
+    player.speed = cfg.weightXspeed - 0.02 * player.weight;
+    player.speed = player.speed < cfg.minPlayerSpeed ? cfg.minPlayerSpeed : player.speed;
     player.radius = (util.WeightToRadius(player.weight));
 }
 
@@ -513,7 +515,7 @@ function Update(_gameId)
     var allObjs = game.changeObj;
     game.changeObj = [];
     if (++pea % 100 == 0)
-        console.log(beEat);
+        console.log(beEat + "," + (beGen - cfg.maxFood));
 
     return allObjs;
 }
