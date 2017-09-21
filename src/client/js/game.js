@@ -23,6 +23,11 @@ const deleteOp = (obj) => {
 }
 
 const States = {
+  idle: {
+    preload () {
+      // clear up
+    }
+  },
   game: {
     preload () {
       this.g = this.game
@@ -74,7 +79,6 @@ const States = {
       this.g.$ws.on('scene-diff', (e) => {
         // console.log('[ws] Received scene diff...', e)
         if (e && e.length) {
-          const ids = Array.from(this.g.$playerList.keys())
           e.forEach((diff) => {
             switch (diff.t) {
               case 2:
@@ -181,7 +185,6 @@ const States = {
       //   })
       // }
 
-      // this.g.$myPlayerId = 0
 
       // this.game.addCharacter('player', p)
 
@@ -194,61 +197,9 @@ const States = {
 
       Callbacks.resize.call(this, this.scale)
 
-      // //
-
-      // this.game.$ws.socket.on('gameSetup', (e) => {
-      //   e.allFood.forEach((food) => {
-      //     this.game.addCharacter('food', food)
-      //   })
-      //   e.allPlayers.forEach((player, index) => {
-      //     if (index === 0) {
-      //       this.game.addCharacter('player', player)
-      //       this.game.$myPlayerId = player.id
-      //     }
-      //   })
-
-      //   this.game.$overlay.hide(this.game.$overlay.refs.panelGame)
-      //   this.game.$overlay.hide(this.game.$overlay.refs.mask)
-      //   // this.game.$myPlayer = e.id
-      // })
-
-      // this.game.$ws.socket.on('connect', () => {
-      //   console.log('connected')
-      //   this.game.$ws.socket.emit('playerlogin', {
-      //     'screenWidth': this.game.scale.width,
-      //     'screenHeight': this.game.scale.height,
-      //     'name': this.game.$myPlayerName,
-      //     // Mouse position on screen
-      //     'target': {
-      //       'x': 0,
-      //       'y': 0
-      //     }
-      //   })
-      // })
-
       this.g.$ws.connect()
       this.g.$overlay.setState('joining')
 
-      //this.game.$myPlayerId = 1
-      // this.game.addCharacter('player', {
-      //   id: this.game.$myPlayerId,
-      //   name: this.game.$myPlayerName,
-      //   x: 500,
-      //   y: 500,
-      //   cells: [
-      //     {
-      //       radius: 100,
-      //       x: 500,
-      //       y: 500
-      //     },
-      //     {
-      //       radius: 300,
-      //       x: 800,
-      //       y: 500
-      //     }
-      //   ],
-      //   hue: Math.random() * 360
-      // })
     },
     update () {
       this.g.$graphics.clear()
@@ -307,6 +258,7 @@ const States = {
 
       // this.game.camera.x = camX
       // this.game.camera.y = camY
+      this.g.$viewRect = this.g.getViewRect()
 
       this.g.cullScene()
       this.g.$renderList.forEach((item) => {
@@ -368,7 +320,7 @@ const States = {
       //   this.game.drawCircle(this.game.scale.width / 2, this.game.scale.height / 2, cell.radius, 40)
       //   this.game.$graphics.endFill()
       // })
-////////////////////////////////
+
       // if (a < 200) {
       //   a += 0.5
       // }
@@ -430,6 +382,22 @@ const States = {
         this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
+    },
+    shutdown () {
+      // Exit game
+      this.g.$ws.on('exited', () => {
+        // Reset socket
+      })
+
+      this.g.$ws.emit('exit', {
+        userID: this.g.$info.myId,
+        gameID: this.g.$info.gameId
+      })
+
+      // Clear up data
+      this.g.$graphics.clear()
+      //
+
     }
   }
 }
@@ -520,17 +488,16 @@ class Game extends Phaser.Game {
 
     this.$ws = options.ws
 
+    this.$viewRect = null
     this.$sprites = {}
     this.$playerList = new Map()
     this.$foodList = new Map()
     this.$virusList = new Map()
     this.$massFoodList = new Map()
     this.$renderList = []
-    this.$myPlayerId = null
     this.$info = {}
 
     this.state.add('game', States.game)
-    // this.state.start('game')
   }
   syncPlayeProps (player, diff) {
     player.cells = diff.cells
@@ -539,7 +506,6 @@ class Game extends Phaser.Game {
   }
   drawCircle (x, y, r, edges = 40) {
     // Generate polygon points
-
     let polygonPoints = []
     for (let i = 0; i <= edges; i++) {
       let angle = Math.PI / 180 * (360 / edges) * i
@@ -549,27 +515,6 @@ class Game extends Phaser.Game {
     this.$graphics.drawShape(new Pixi.Polygon(polygonPoints))
     // this.$graphics.drawShape(new Phaser.Circle(x, y, 10 * r))
   }
-  // drawFood (food) {
-  //   this.$graphics.beginFill(
-  //     parseInt(TinyColor({h: food.hue, s: 100, v: 100}).toHex(), 16),
-  //     1)
-  //   this.drawCircle(
-  //     food.x - this.me.x + this.scale.width / 2,
-  //     food.y - this.me.y + this.scale.height / 2,
-  //     food.radius, 6)
-  //   this.$graphics.endFill()
-  // }
-  // drawPlayer (player) {
-  //   this.$graphics.beginFill(
-  //     parseInt(TinyColor({h: player.hue, s: 100, v: 100}).toHex(), 16),
-  //     1)
-
-  //   // this.drawCircle(
-  //   //   food.x - this.game.playerList[0].x + this.game.scale.width / 2,
-  //   //   food.y - this.game.playerList[0].y + this.game.scale.height / 2,
-  //   //   food.radius, 6)
-  //   this.$graphics.endFill()
-  // }
   addCharacter (type, option) {
     if (!option || option.id === undefined) {
       console.warn('@addCharacter:', `Invalid character option: ${option}`)
@@ -679,7 +624,10 @@ class Game extends Phaser.Game {
     })
   }
   isInView (character) {
-    const rect = this.getViewRect()
+    if (!this.$viewRect) {
+      return false
+    }
+    const rect = this.$viewRect
     if (character.x - character.r > rect.right ||
     character.x + character.r < rect.left ||
     character.y - character.r > rect.bottom ||
