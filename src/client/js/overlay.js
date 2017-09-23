@@ -59,6 +59,9 @@ class Overlay {
     this.refs.btStartGame.addEventListener('click', (e) => {
       this.onBtStartGameClick(e)
     })
+    this.refs.btReborn.addEventListener('click', (e) => {
+      this.onBtRebornClick(e)
+    })
   }
   hide (dom) {
     dom.classList.add('hidden')
@@ -66,12 +69,31 @@ class Overlay {
   show (dom) {
     dom.classList.remove('hidden')
   }
+  setState (state, option) {
+    switch (state) {
+      case 'died':
+        this.show(this.refs.mask)
+        this.show(this.refs.infoDied)
+        break
+      case 'joining':
+        this.show(this.refs.mask)
+        this.show(this.refs.infoJoin)
+        this.hide(this.refs.panelGame)
+        this.hide(this.refs.infoDied)
+        break
+      case 'gaming':
+        this.hide(this.refs.mask)
+        this.hide(this.refs.infoJoin)
+        this.hide(this.refs.infoDied)
+        break
+    }
+  }
   setLeaderBoard (list) {
     let html = ''
     if (Array.isArray(list) && list.length) {
       list.forEach((item) => {
         html += `<div class="name ${item.id === this.game.$info.myId ? 'self' : ''}">\
-          ${item.rank}. ${item.name}(${item.weight})\
+          ${item.rank}. (${Math.round(item.weight / 50)}) ${item.name}\
           </div>`
       })
     }
@@ -83,6 +105,15 @@ class Overlay {
     }
 
     this.refs.leaderBoardContent.innerHTML = html
+  }
+  onBtRebornClick (e) {
+    this.game.reborn()
+      .then(() => {
+
+      })
+      .catch((e) => {
+        console.log(e)
+      })
   }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {

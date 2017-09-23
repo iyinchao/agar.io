@@ -16,17 +16,17 @@ let url = ''
 if (process.env.NODE_ENV === 'development') {
   url = 'http://localhost:3000'
 } else {
-  url = 'http://45.76.182.99:3000'
+  url = 'http://45.76.205.64:3000'
 }
 
 export class WS {
   constructor () {
-    this.socket = io(
+    this.socket = this.factory()
+  }
+  factory () {
+    return io(
       url,
-      {
-        autoConnect: false
-      }
-    )
+      { autoConnect: false })
   }
   on (type, cb) {
     return this.socket.on(type, cb)
@@ -38,7 +38,12 @@ export class WS {
     this.socket.open()
   }
   disconnect () {
-    this.socket.close()
+    this.socket.disconnect()
+  }
+  renew () {
+    this.disconnect()
+    this.socket = null
+    this.socket = this.factory()
   }
 }
 

@@ -26,6 +26,7 @@
   },
   "homepage": "https://gitlab.com/webtraining/agario#README",
   "dependencies": {
+    "bluebird": "^3.5.0",
     "cross-env": "^5.0.5",
     "express": "^4.15.4",
     "express-session": "^1.15.5",

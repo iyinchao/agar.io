@@ -1,4 +1,5 @@
 import { throttle } from 'lodash'
+import Promise from 'bluebird'
 /* eslint-disable no-unused-vars */
 import Pixi from 'pixi'
 import P2 from 'p2'
@@ -23,6 +24,11 @@ const deleteOp = (obj) => {
 }
 
 const States = {
+  idle: {
+    preload () {
+      // clear up
+    }
+  },
   game: {
     preload () {
       this.g = this.game
@@ -30,9 +36,11 @@ const States = {
 
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
-        this.g.$ws.emit('join', {
-          nickname: this.g.$info.myName
-        })
+        setTimeout(() => {
+          this.g.$ws.emit('join', {
+            nickname: this.g.$info.myName
+          })
+        }, 1500)
       })
 
       this.g.$ws.on('joined', (e) => {
@@ -66,14 +74,12 @@ const States = {
             }
           })
         }
-
-        this.g.$overlay.hide(this.g.$overlay.refs.mask)
+        this.g.$overlay.setState('gaming')
       })
 
       this.g.$ws.on('scene-diff', (e) => {
         // console.log('[ws] Received scene diff...', e)
         if (e && e.length) {
-          const ids = Array.from(this.g.$playerList.keys())
           e.forEach((diff) => {
             switch (diff.t) {
               case 2:
@@ -104,15 +110,15 @@ const States = {
                   case 0:
                     // Sync data
                     p = this.g.getCharacter('player', diff.id)
-                    const props = Object.keys(diff)
+                    const props = Object.keys(deleteOp(diff))
                     props.forEach((prop) => {
                       p[prop] = diff[prop]
                     })
-
                     break
                   case -1:
                     if (diff.id === this.g.$info.myId) {
-                      alert('died')
+                      // Die logic
+                      this.g.$overlay.setState('died')
                     }
                     p = this.g.removeCharacter('player', diff.id)
                     p.destroy()
@@ -120,23 +126,6 @@ const States = {
                     break
                 }
                 break
-              // case 1:
-              //   // player
-              //   // do diff here... fuck this shit.
-              //   const idx = ids.indexOf(diff.id)
-              //   if (idx > -1) {
-              //     const p = this.g.getCharacter('player', diff.id)
-              //     // console.log(diff.id, ids, diff, p)
-              //     this.g.syncPlayeProps(
-              //       p,
-              //       diff
-              //     )
-              //     // remove updated id
-              //     ids.splice(idx, 1)
-              //   } else {
-              //     this.g.addCharacter('player', diff)
-              //   }
-              //   break
             }
           })
           // delete
@@ -144,10 +133,6 @@ const States = {
           //   this.g.removeCharacter('player', id)
           // })
         }
-      })
-
-      this.g.$ws.on('exited', (e) => {
-
       })
     },
     create () {
@@ -197,7 +182,6 @@ const States = {
       //   })
       // }
 
-      // this.g.$myPlayerId = 0
 
       // this.game.addCharacter('player', p)
 
@@ -210,60 +194,9 @@ const States = {
 
       Callbacks.resize.call(this, this.scale)
 
-      // //
-
-      // this.game.$ws.socket.on('gameSetup', (e) => {
-      //   e.allFood.forEach((food) => {
-      //     this.game.addCharacter('food', food)
-      //   })
-      //   e.allPlayers.forEach((player, index) => {
-      //     if (index === 0) {
-      //       this.game.addCharacter('player', player)
-      //       this.game.$myPlayerId = player.id
-      //     }
-      //   })
-
-      //   this.game.$overlay.hide(this.game.$overlay.refs.panelGame)
-      //   this.game.$overlay.hide(this.game.$overlay.refs.mask)
-      //   // this.game.$myPlayer = e.id
-      // })
-
-      // this.game.$ws.socket.on('connect', () => {
-      //   console.log('connected')
-      //   this.game.$ws.socket.emit('playerlogin', {
-      //     'screenWidth': this.game.scale.width,
-      //     'screenHeight': this.game.scale.height,
-      //     'name': this.game.$myPlayerName,
-      //     // Mouse position on screen
-      //     'target': {
-      //       'x': 0,
-      //       'y': 0
-      //     }
-      //   })
-      // })
-
       this.g.$ws.connect()
+      this.g.$overlay.setState('joining')
 
-      //this.game.$myPlayerId = 1
-      // this.game.addCharacter('player', {
-      //   id: this.game.$myPlayerId,
-      //   name: this.game.$myPlayerName,
-      //   x: 500,
-      //   y: 500,
-      //   cells: [
-      //     {
-      //       radius: 100,
-      //       x: 500,
-      //       y: 500
-      //     },
-      //     {
-      //       radius: 300,
-      //       x: 800,
-      //       y: 500
-      //     }
-      //   ],
-      //   hue: Math.random() * 360
-      // })
     },
     update () {
       this.g.$graphics.clear()
@@ -298,12 +231,15 @@ const States = {
         if (process.env.NODE_ENV === 'development') {
           this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
           this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
+
+          this.g.$graphics.lineStyle(2, 0xd75cf6, 1)
+          this.g.$graphics.moveTo(player.x, player.y)
+          this.g.$graphics.lineTo(mX, mY)
+          this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
 
-        this.game.$graphics.lineStyle(0, 0x000000, 0)
         this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
         this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
-
         // this.g.camera.scale.setTo(2, 2)
       }
 
@@ -312,13 +248,6 @@ const States = {
         this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
         this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
         this.game.$graphics.lineStyle(0, 0x000000, 0)
-
-        if (player) {
-          this.g.$graphics.lineStyle(2, 0xd75cf6, 1)
-          this.g.$graphics.moveTo(player.x, player.y)
-          this.g.$graphics.lineTo(mX, mY)
-          this.game.$graphics.lineStyle(0, 0x000000, 0)
-        }
       }
 
 
@@ -326,6 +255,7 @@ const States = {
 
       // this.game.camera.x = camX
       // this.game.camera.y = camY
+      this.g.$viewRect = this.g.getViewRect()
 
       this.g.cullScene()
       this.g.$renderList.forEach((item) => {
@@ -348,7 +278,7 @@ const States = {
           return 0
         })
 
-        const rankIds = ids.slice(0, 3)
+        const rankIds = ids.slice(0, 5)
         const rankData = rankIds.map((id, index) => {
           return {
             id,
@@ -387,7 +317,7 @@ const States = {
       //   this.game.drawCircle(this.game.scale.width / 2, this.game.scale.height / 2, cell.radius, 40)
       //   this.game.$graphics.endFill()
       // })
-////////////////////////////////
+
       // if (a < 200) {
       //   a += 0.5
       // }
@@ -449,6 +379,16 @@ const States = {
         this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
+    },
+    shutdown () {
+      // Exit game
+
+
+
+      // Clear up data
+      this.g.$graphics.clear()
+      //
+
     }
   }
 }
@@ -539,26 +479,41 @@ class Game extends Phaser.Game {
 
     this.$ws = options.ws
 
+    this.$viewRect = null
     this.$sprites = {}
     this.$playerList = new Map()
     this.$foodList = new Map()
     this.$virusList = new Map()
     this.$massFoodList = new Map()
     this.$renderList = []
-    this.$myPlayerId = null
     this.$info = {}
 
     this.state.add('game', States.game)
-    // this.state.start('game')
+    this.state.add('idle', States.idle)
   }
-  syncPlayeProps (player, diff) {
-    player.cells = diff.cells
-    player.x = diff.x
-    player.y = diff.y
+  reborn () {
+    return new Promise((resolve, reject) => {
+      if (this.state.current === 'game') {
+        // Exit game
+        this.$ws.on('exited', () => {
+          resolve()
+        })
+
+        this.$ws.emit('exit', {
+          userID: this.$info.myId,
+          gameID: this.$info.gameId
+        })
+      } else {
+        reject(new Error('not-in-game'))
+      }
+    }).then(() => {
+      this.$ws = this.$ws.renew()
+    }).then(() => {
+      this.game.state.start('idle')
+    })
   }
   drawCircle (x, y, r, edges = 40) {
     // Generate polygon points
-
     let polygonPoints = []
     for (let i = 0; i <= edges; i++) {
       let angle = Math.PI / 180 * (360 / edges) * i
@@ -568,27 +523,6 @@ class Game extends Phaser.Game {
     this.$graphics.drawShape(new Pixi.Polygon(polygonPoints))
     // this.$graphics.drawShape(new Phaser.Circle(x, y, 10 * r))
   }
-  // drawFood (food) {
-  //   this.$graphics.beginFill(
-  //     parseInt(TinyColor({h: food.hue, s: 100, v: 100}).toHex(), 16),
-  //     1)
-  //   this.drawCircle(
-  //     food.x - this.me.x + this.scale.width / 2,
-  //     food.y - this.me.y + this.scale.height / 2,
-  //     food.radius, 6)
-  //   this.$graphics.endFill()
-  // }
-  // drawPlayer (player) {
-  //   this.$graphics.beginFill(
-  //     parseInt(TinyColor({h: player.hue, s: 100, v: 100}).toHex(), 16),
-  //     1)
-
-  //   // this.drawCircle(
-  //   //   food.x - this.game.playerList[0].x + this.game.scale.width / 2,
-  //   //   food.y - this.game.playerList[0].y + this.game.scale.height / 2,
-  //   //   food.radius, 6)
-  //   this.$graphics.endFill()
-  // }
   addCharacter (type, option) {
     if (!option || option.id === undefined) {
       console.warn('@addCharacter:', `Invalid character option: ${option}`)
@@ -698,7 +632,10 @@ class Game extends Phaser.Game {
     })
   }
   isInView (character) {
-    const rect = this.getViewRect()
+    if (!this.$viewRect) {
+      return false
+    }
+    const rect = this.$viewRect
     if (character.x - character.r > rect.right ||
     character.x + character.r < rect.left ||
     character.y - character.r > rect.bottom ||

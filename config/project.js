@@ -24,7 +24,7 @@ const configCommon = {
 const config = {
   development: {
     devServer: {
-      port: 5000,
+      port: 5001,
       // host: 'http://agar-clone.io'
     },
     server: {

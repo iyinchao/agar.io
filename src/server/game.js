@@ -121,6 +121,9 @@ function GenerateGameObject(type)
     return obj;
 }
 
+var sta = 0;
+var beGen = 0;
+
 function FillEatable(game)
 {
     while (game.foodCount < cfg.maxFood) {
@@ -128,6 +131,10 @@ function FillEatable(game)
         food.id = game.curObjId++;
         game.others[food.id] = food;
         game.foodCount++;
+        //food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
+        //food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
+        sta++;
+        beGen++;
         game.changeObj.push(new NewSceneObject(food));
     }
 
@@ -246,14 +253,14 @@ function Move(_gameId, _playerId, dirX, dirY)
     pg.dir = [dirX, dirY];
     for (var id in pg.players) {
         var player = pg.players[id];
-        player.speed = (cfg.weightXspeed / player.weight);
-        player.speed = player.speed < cfg.minSpeed ? cfg.minSpeed : player.speed;
+        UpdateAttr(player);
     }
 }
 
 function UpdateAttr(player)
 {
-    player.speed = (cfg.weightXspeed / player.weight);
+    player.speed = cfg.weightXspeed - 0.02 * player.weight;
+    player.speed = player.speed < cfg.minPlayerSpeed ? cfg.minPlayerSpeed : player.speed;
     player.radius = (util.WeightToRadius(player.weight));
 }
 
@@ -286,7 +293,7 @@ function DoMultiSplit(player)
 
 function DoBinSplit(player, cosx, sinx)
 {
-    if (player.radius / 1.414 < cfg.minPlayerRadius) {
+    if (player.radius / 1.414 < cfg.playerMinRadius) {
         GameLog("-", "*", "Split radius too small");
         return null;
     }
@@ -343,6 +350,8 @@ function UpdatePosition(pg)
     }
 }
 
+var beEat = 0;
+
 function CollideWithObject(player, obj, game)
 {
     var dis = util.Distance(player, obj);
@@ -358,6 +367,7 @@ function CollideWithObject(player, obj, game)
             return DoMultiSplit(player);
         } else if (obj.type == OBJECT_TYPE.FOOD) {
             game.foodCount--;
+            beEat++;
         }
     }
     return [];
@@ -478,6 +488,8 @@ function ExtractPlayerScene(game)
     return objs;
 }
 
+var pea = 0;
+
 function Update(_gameId)
 {
     var game = gameRefs[_gameId];
@@ -502,6 +514,9 @@ function Update(_gameId)
     FillEatable(game);
     var allObjs = game.changeObj;
     game.changeObj = [];
+    if (++pea % 100 == 0)
+        console.log(beEat + "," + (beGen - cfg.maxFood));
+
     return allObjs;
 }
 
