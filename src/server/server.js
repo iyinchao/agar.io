@@ -211,13 +211,13 @@ io.on('connection', function(socket){
 				{
 					pos = i;
 				}	
-				if(activeGames[i]!== undefined && activeGames[i].playerip === socket.request.connection.remoteAddress)
-				{
-					console.log("Zombie is to be deleted");
-					console.log("PlayerIP:"+activeGames[i].playerip);
-					game.Exit(activeGames[i].gameid, activeGames[i].playerid);
-					deleteSocketRecord(activeGames[i].gameid, activeGames[i].playerid);
-				}
+				//if(activeGames[i]!== undefined && activeGames[i].playerip === socket.request.connection.remoteAddress)
+				//{
+				//	console.log("Zombie is to be deleted");
+				//	console.log("PlayerIP:"+activeGames[i].playerip);
+				//	game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+				//	deleteSocketRecord(activeGames[i].gameid, activeGames[i].playerid);
+				//}
 			}
 			if(pos === -1)
 			{
