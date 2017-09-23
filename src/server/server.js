@@ -62,7 +62,7 @@ function on_top_n(req, rsp)
         } else {
             var result = [];
             for (var i = 0; i < db.length; ++i) {
-                result.push({name: db[i].name});
+                result.push({name: db[i].name, id: db[i]._id});
                 result[i][category] = db[i][category];
             }
             return rsp.json(result);
@@ -137,7 +137,7 @@ function on_login(req, rsp)
     var login_callback = function(err, db) {
         if (!err && db.length >= 1) {
             req.session._id = param.id;
-            rsp.json(new ret_data(0, "loin success"));
+            rsp.json(new ret_data(0, "loin success", db[0].name));
         } else {
             rsp.json(new ret_data(-1, err));
         }
