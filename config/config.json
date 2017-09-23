@@ -34,7 +34,7 @@
     "maxCellCount": 16,
 
     "foodWeight": 50,
-    "foodRadius":10,
+    "foodRadius": 7,
 
     "virusWeight": 0,
     "virusRadius": 60,

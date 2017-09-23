@@ -131,8 +131,8 @@ function FillEatable(game)
         food.id = game.curObjId++;
         game.others[food.id] = food;
         game.foodCount++;
-        food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
-        food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
+        //food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
+        //food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
         sta++;
         beGen++;
         game.changeObj.push(new NewSceneObject(food));
