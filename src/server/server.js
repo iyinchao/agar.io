@@ -280,7 +280,6 @@ io.on('connection', function(socket){
 
 		socket.on('exit', function(message){
 			console.log("Socket_ID:"+ socket.id);
-			console.log("Ni ta ma de wei shen me fa bu chu qu");
 			socket.emit('exited', "You are exited!");
 			console.log('[INFO] Player_name[' + currentPlayer.nickname + '] exited!');
 			console.log('[INFO] Player_GameID[' + currentPlayer.gameid + '] exited!');
