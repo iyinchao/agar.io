@@ -3,8 +3,6 @@
  * @author Charlieyin<charlieyin@tencent.com>
  */
 
-const utils = require('../scripts/utils')
-
 const configCommon = {
   dist: 'dist',
   client: {
@@ -47,5 +45,5 @@ const getConfigForEnv = function (env) {
   )
 }
 
-module.exports = getConfigForEnv(utils.env())
+module.exports = getConfigForEnv(process.env.NODE_ENV)
 

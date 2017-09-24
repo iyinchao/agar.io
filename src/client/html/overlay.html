@@ -1,23 +1,47 @@
 <div id="overlay">
+  <div class="toast" data-ref="toast"></div>
   <div id="leader-board", data-ref="leaderBoard">
     <div class="title">Big Monsters</div>
     <div data-ref="leaderBoardContent"></div>
   </div>
   <div id="mask" data-ref="mask"></div>
-  <div data-ref="infoJoin" class="info"><div class="spinner"></div><span data-ref="infoJoinText">系好安全带，正在进入世界...</span></div>
+  <div data-ref="infoLoading" class="info"><div class="spinner"></div><span data-ref="infoLoadingText"></span></div>
   <div data-ref="infoDied" class="info">
-    胜败乃兵家常事，球球请重新来过...<button data-ref="btReborn" class="button primary">立即重生</button>
+    胜败乃兵家常事，球球请重新来过...
+    <div class="button-wrapper">
+      <button data-ref="btDiedReborn" class="button primary">立即重生</button>
+      <button data-ref="btDiedLeave" class="button yellow">离开这里</button>
+    </div>
   </div>
   <div id="game-panel" class="panel" data-ref="panelGame">
     <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
     <input type="text" class="input-text row" data-ref="textNick" placeholder="输入昵称">
-    <button class="button primary row" data-ref="btStartGame">进入游戏</button>
+    <div class="button-wrapper">
+      <button class="button yellow" data-ref="btChangeUser">换个身份</button>
+      <button class="button primary" data-ref="btStartGame">进入游戏</button>
+    </div>
   </div>
-  <div id="user-panel" class="panel" data-ref="panelUser" style="display: none">
-    <div class="title">Agar.io</div>
-    <input type="text" class="input-text row" data-ref="textUserNick" placeholder="请输入用户名">
-    <input type="password" class="input-text row" data-ref="textPassword" placeholder="请输入密码">
-    <button class="button primary row" data-ref="btRegister">注册</button>
+  <div id="user-panel" class="panel" data-ref="panelUser">
+    <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
+    <div data-ref="panelUserReg">
+      <input type="text" class="input-text row" data-ref="regEmail" placeholder="输入Email">
+      <input type="text" class="input-text row" data-ref="regNick" placeholder="想个昵称呗">
+      <input type="password" class="input-text row" data-ref="regPassword" placeholder="输入密码">
+      <input type="password" class="input-text row" data-ref="regPasswordRep" placeholder="再重复一遍密码">
+      <button class="button primary row" data-ref="btRegister">注册</button>
+    </div>
+    <div data-ref="panelUserLogin">
+      <input type="text" class="input-text row" data-ref="loginEmail" placeholder="输入Email">
+      <input type="password" class="input-text row" data-ref="loginPassword" placeholder="输入密码">
+      <button class="button primary row" data-ref="btLogin">登录</button>
+    </div>
+    <div data-ref="panelUserLoading">
+
+    </div>
+    <div class="text-divider">或者</div>
+    <div data-ref="panelGuest">
+      <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，不想注册</button>
+    </div>
   </div>
 </div>
  

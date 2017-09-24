@@ -42,9 +42,16 @@ button.button {
   }
   &.primary {
     background-color: $colorPrimary;
-    color: lighten($colorPrimary, 80%);
+    color: white;
     &:active {
       background-color: darken($colorPrimary, 10%);
+    }
+  }
+  &.yellow {
+    background-color: $colorYellow;
+    color: black;
+    &:active {
+      background-color: darken($colorYellow, 10%);
     }
   }
 }
@@ -58,7 +65,7 @@ button.button {
   outline: none;
   transition: all 200ms;
   &:focus {
-    box-shadow: $boxShadow1, 0 0 0 2px rgba($colorPrimary, 0.47);
+    box-shadow: $boxShadow1;
   }
 }
 

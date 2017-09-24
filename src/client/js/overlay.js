@@ -59,9 +59,15 @@ class Overlay {
     this.refs.btStartGame.addEventListener('click', (e) => {
       this.onBtStartGameClick(e)
     })
-    this.refs.btReborn.addEventListener('click', (e) => {
-      this.onBtRebornClick(e)
+    this.refs.btDiedReborn.addEventListener('click', (e) => {
+      this.onBtDiedRebornClick(e)
     })
+    this.refs.btPlayAsGuest.addEventListener('click', (e) => {
+      this.onBtPlayAsGuest(e)
+    })
+
+    // Check session storage
+    this.setState('userPanel')
   }
   hide (dom) {
     dom.classList.add('hidden')
@@ -71,22 +77,49 @@ class Overlay {
   }
   setState (state, option) {
     switch (state) {
+      case 'userPanel':
+        this.show(this.refs.mask)
+        this.show(this.refs.panelUser)
+        this.hide(this.refs.panelGame)
+        this.hide(this.refs.infoLoading)
+        this.hide(this.refs.infoDied)
+        this.hide(this.refs.leaderBoard)
+        break
+      case 'gamePanel':
+        this.show(this.refs.mask)
+        this.show(this.refs.panelGame)
+        this.hide(this.refs.panelUser)
+        this.hide(this.refs.infoLoading)
+        this.hide(this.refs.infoDied)
+        this.hide(this.refs.leaderBoard)
+        break
       case 'died':
         this.show(this.refs.mask)
         this.show(this.refs.infoDied)
         break
       case 'joining':
         this.show(this.refs.mask)
-        this.show(this.refs.infoJoin)
+        this.setLoadingText('系好安全带，正在进入世界...')
+        this.show(this.refs.infoLoading)
         this.hide(this.refs.panelGame)
         this.hide(this.refs.infoDied)
         break
       case 'gaming':
         this.hide(this.refs.mask)
-        this.hide(this.refs.infoJoin)
+        this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
+        this.show(this.refs.leaderBoard)
+        break
+      case 'reborning':
+        this.setLoadingText('别急，正在等待重生...')
+        this.show(this.refs.infoLoading)
+        this.hide(this.refs.infoDied)
+        this.hide(this.refs.leaderBoard)
         break
     }
+  }
+  setLoadingText (text) {
+    this.refs.infoLoadingText.innerText = text
   }
   setLeaderBoard (list) {
     let html = ''
@@ -106,7 +139,7 @@ class Overlay {
 
     this.refs.leaderBoardContent.innerHTML = html
   }
-  onBtRebornClick (e) {
+  onBtDiedRebornClick (e) {
     this.game.reborn()
       .then(() => {
 
@@ -123,6 +156,9 @@ class Overlay {
       // this.hide(this.refs.mask)
       this.hide(this.refs.panelGame)
     }
+  }
+  onBtPlayAsGuest (e) {
+    this.setState('gamePanel')
   }
 }
 

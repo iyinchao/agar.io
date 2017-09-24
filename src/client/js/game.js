@@ -26,13 +26,16 @@ const deleteOp = (obj) => {
 const States = {
   idle: {
     preload () {
-      // clear up
+      this.g = this.game
     }
   },
   game: {
     preload () {
       this.g = this.game
-      this.load.image('background', require('@/assets/img/tile.png'))
+
+      this.g.stage.disableVisibilityChange = true
+
+      this.g.load.image('background', require('@/assets/img/tile.png'))
 
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
@@ -40,7 +43,7 @@ const States = {
           this.g.$ws.emit('join', {
             nickname: this.g.$info.myName
           })
-        }, 1500)
+        }, 1000)
       })
 
       this.g.$ws.on('joined', (e) => {
@@ -57,6 +60,9 @@ const States = {
         this.g.$foodList.clear()
         if (e.setup && e.setup.length) {
           e.setup.forEach((obj) => {
+            if (obj.t !== 1 && obj.t !== 2) {
+              console.log(obj)
+            }
             switch (obj.t) {
               case 2:
                 // food
@@ -141,6 +147,8 @@ const States = {
       this.g.input.keyboard.onUpCallback = Callbacks.keyboardUp
       this.g.input.keyboard.onDownCallback = Callbacks.keyboardDown
       this.g.input.keyboard.onPressCallback = Callbacks.keyboardPress
+
+      this.g.$key = {}
       this.g.$key.up = this.g.input.keyboard.addKey(Phaser.Keyboard.UP)
       this.g.$key.down = this.g.input.keyboard.addKey(Phaser.Keyboard.DOWN)
       this.g.$key.left = this.g.input.keyboard.addKey(Phaser.Keyboard.LEFT)
@@ -196,7 +204,6 @@ const States = {
 
       this.g.$ws.connect()
       this.g.$overlay.setState('joining')
-
     },
     update () {
       this.g.$graphics.clear()
@@ -328,50 +335,47 @@ const States = {
 
       // update speeds
       const delta = 0.1
-      if (this.g.$key.down.isDown) {
-        vY += delta
+      if (this.g.$key) {
+        if (this.g.$key.down.isDown) {
+          vY += delta
+        }
+        if (this.g.$key.up.isDown) {
+          vY -= delta
+        }
+        if (this.g.$key.right.isDown) {
+          vX += delta
+        }
+        if (this.g.$key.left.isDown) {
+          vX -= delta
+        }
+        vX = Math.round(vX * 100) / 100
+        vY = Math.round(vY * 100) / 100
+        // Normalize speed
+        if (vX > 1) {
+          vX = 1
+        }
+        if (vX < -1) {
+          vX = -1
+        }
+        if (vY > 1) {
+          vY = 1
+        }
+        if (vY < -1) {
+          vY = -1
+        }
+        if (vX !== lvX || vY !== lvY) {
+          console.log('send!', vX, vY)
+          this.g.$ws.emit('op', {
+            t: 'mv',
+            x: vX,
+            y: vY,
+            userID: this.g.$info.userId,
+            gameID: this.g.$info.gameId
+          })
+        }
+        lvX = vX
+        lvY = vY
       }
-      if (this.g.$key.up.isDown) {
-        vY -= delta
-      }
-      if (this.g.$key.right.isDown) {
-        vX += delta
-      }
-      if (this.g.$key.left.isDown) {
-        vX -= delta
-      }
-      vX = Math.round(vX * 100) / 100
-      vY = Math.round(vY * 100) / 100
-      // Normalize speed
-      if (vX > 1) {
-        vX = 1
-      }
-      if (vX < -1) {
-        vX = -1
-      }
-      if (vY > 1) {
-        vY = 1
-      }
-      if (vY < -1) {
-        vY = -1
-      }
-      if (vX !== lvX || vY !== lvY) {
-        console.log('send!', vX, vY)
-        this.g.$ws.emit('op', {
-          t: 'mv',
-          x: vX,
-          y: vY,
-          userID: this.g.$info.userId,
-          gameID: this.g.$info.gameId
-        })
-      }
-      lvX = vX
-      lvY = vY
-      // this.game.$playerList.forEach((player) => {
-      //   player.update()
-      // })
-
-      // this.game.getViewRect()
     },
     render () {
       if (process.env.NODE_ENV === 'development') {
@@ -381,14 +385,23 @@ const States = {
       }
     },
     shutdown () {
-      // Exit game
-
-
+      this.g.$ws.renew()
 
       // Clear up data
       this.g.$graphics.clear()
-      //
+      this.$viewRect = null
+      this.g.$renderList = []
+      this.g.$playerList.clear()
+      this.g.$foodList.clear()
 
+      this.g.$sprites['background'].destroy()
+      this.g.$graphics.destroy()
+
+      this.g.input.keyboard.removeKey(Phaser.Keyboard.UP)
+      this.g.input.keyboard.removeKey(Phaser.Keyboard.DOWN)
+      this.g.input.keyboard.removeKey(Phaser.Keyboard.LEFT)
+      this.g.input.keyboard.removeKey(Phaser.Keyboard.RIGHT)
+      this.g.$key = null
     }
   }
 }
@@ -419,18 +432,27 @@ const Callbacks = {
       // Normalize vector
       let nX = vecX / this.game.scale.width * 2
       let nY = vecY / this.game.scale.height * 2
-      if (nX > 1) {
-        nX = 1
+
+      let maxRatio = Math.max(Math.abs(nX), Math.abs(nY))
+
+      // Bound to 1
+      if (maxRatio > 1) {
+        nX = nX / maxRatio
+        nY = nY / maxRatio
       }
-      if (nX < -1) {
-        nX = -1
-      }
-      if (nY > 1) {
-        nY = 1
-      }
-      if (nY < -1) {
-        nY = -1
-      }
+
+      // if (nX > 1) {
+      //   nX = 1
+      // }
+      // if (nX < -1) {
+      //   nX = -1
+      // }
+      // if (nY > 1) {
+      //   nY = 1
+      // }
+      // if (nY < -1) {
+      //   nY = -1
+      // }
       console.log('send!', nX, nY)
       this.game.$ws.emit('op', {
         t: 'mv',
@@ -475,7 +497,7 @@ class Game extends Phaser.Game {
     this.$canvas = canvas
     this.$states = States
     this.$callbacks = Callbacks
-    this.$key = {}
+    this.$key = null
 
     this.$ws = options.ws
 
@@ -507,14 +529,29 @@ class Game extends Phaser.Game {
         reject(new Error('not-in-game'))
       }
     }).then(() => {
-      this.$ws = this.$ws.renew()
+      this.state.start('idle')
+      this.$overlay.setState('reborning')
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve()
+        }, 1000)
+      })
     }).then(() => {
-      this.game.state.start('idle')
+      this.state.start('game')
     })
   }
-  drawCircle (x, y, r, edges = 40) {
+  drawCircle (x, y, r, edges) {
     // Generate polygon points
     let polygonPoints = []
+
+    // LoD edges
+    if (!edges) {
+      edges = Math.round(r / 2)
+      if (edges < 24) {
+        edges = 24
+      }
+    }
+
     for (let i = 0; i <= edges; i++) {
       let angle = Math.PI / 180 * (360 / edges) * i
       polygonPoints.push(x + Math.cos(angle) * r)
@@ -522,6 +559,20 @@ class Game extends Phaser.Game {
     }
     this.$graphics.drawShape(new Pixi.Polygon(polygonPoints))
     // this.$graphics.drawShape(new Phaser.Circle(x, y, 10 * r))
+  }
+  drawVirus (x, y, r) {
+    let polygonPoints = []
+    let edges = Math.round(r / 1.5) % 2 ? Math.round(r / 1.5) + 1 : Math.round(r / 1.5)
+    if (edges < 36) {
+      edges = 36
+    }
+    for (let i = 0; i <= edges; i++) {
+      let rr = i % 2 ? r : r * 0.9
+      let angle = Math.PI / 180 * (360 / edges) * i
+      polygonPoints.push(x + Math.cos(angle) * rr)
+      polygonPoints.push(y + Math.sin(angle) * rr)
+    }
+    this.$graphics.drawShape(new Pixi.Polygon(polygonPoints))
   }
   addCharacter (type, option) {
     if (!option || option.id === undefined) {
@@ -563,7 +614,6 @@ class Game extends Phaser.Game {
     if (id === undefined) {
       return
     }
-
 
     let list
     switch (type) {
@@ -618,6 +668,7 @@ class Game extends Phaser.Game {
     })
 
     //
+    // TODO: sorting characters
     this.$playerList.forEach((player) => {
       if (player.cells && player.cells.length) {
         player.cells.forEach((cell) => {

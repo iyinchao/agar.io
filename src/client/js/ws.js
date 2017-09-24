@@ -44,6 +44,7 @@ export class WS {
     this.disconnect()
     this.socket = null
     this.socket = this.factory()
+    return this.socket
   }
 }
 

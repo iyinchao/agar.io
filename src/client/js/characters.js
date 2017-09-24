@@ -132,7 +132,8 @@ export class Player extends Character {
   updateCell () {
     this.parent.game.$graphics.lineStyle(10, this.parent._hexColor, 1)
     this.parent.game.$graphics.beginFill(this.parent._hexFillColor, 1)
-    this.parent.game.$graphics.drawCircle(this.x, this.y, this.r * 2)
+    // this.parent.game.$graphics.drawCircle(this.x, this.y, this.r * 2)
+    this.parent.game.drawCircle(this.x, this.y, this.r)
     this.parent.game.$graphics.endFill()
     this.parent.game.$graphics.lineWidth = 0
   }
@@ -161,7 +162,7 @@ export class Food extends Character {
 
     this.game.$graphics.beginFill(this._hexColor)
     // this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
-    this.game.drawCircle(this.x, this.y, this.r, 7)
+    this.game.drawCircle(this.x, this.y, this.r, 6)
     this.game.$graphics.endFill()
     // Generate polygon points
 
