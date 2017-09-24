@@ -121,9 +121,6 @@ function GenerateGameObject(type)
     return obj;
 }
 
-var sta = 0;
-var beGen = 0;
-
 function FillEatable(game)
 {
     while (game.foodCount < cfg.maxFood) {
@@ -131,10 +128,6 @@ function FillEatable(game)
         food.id = game.curObjId++;
         game.others[food.id] = food;
         game.foodCount++;
-        //food.x = (sta / 70 + 1) * 3 * cfg.foodRadius;
-        //food.y = (sta % 70 + 1) * 3 * cfg.foodRadius;
-        sta++;
-        beGen++;
         game.changeObj.push(new NewSceneObject(food));
     }
 
@@ -488,8 +481,6 @@ function ExtractPlayerScene(game)
     return objs;
 }
 
-var pea = 0;
-
 function Update(_gameId)
 {
     var game = gameRefs[_gameId];
@@ -514,8 +505,6 @@ function Update(_gameId)
     FillEatable(game);
     var allObjs = game.changeObj;
     game.changeObj = [];
-    if (++pea % 100 == 0)
-        console.log(beEat + "," + (beGen - cfg.maxFood));
 
     return allObjs;
 }

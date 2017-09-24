@@ -36,7 +36,7 @@
     "foodWeight": 50,
     "foodRadius": 7,
 
-    "virusWeight": 0,
+    "virusWeight": 10,
     "virusRadius": 60,
 
     "massWeight": 30,
