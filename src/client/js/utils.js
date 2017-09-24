@@ -1,3 +1,6 @@
+export const getGavatarHash = (email) => {
+
+}
 
 const utils = {
 

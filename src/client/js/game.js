@@ -364,7 +364,7 @@ const States = {
           vY = -1
         }
         if (vX !== lvX || vY !== lvY) {
-          console.log('send!', vX, vY)
+          // console.log('send!', vX, vY)
           this.g.$ws.emit('op', {
             t: 'mv',
             x: vX,
@@ -453,7 +453,7 @@ const Callbacks = {
       // if (nY < -1) {
       //   nY = -1
       // }
-      console.log('send!', nX, nY)
+      // console.log('send!', nX, nY)
       this.game.$ws.emit('op', {
         t: 'mv',
         x: nX,

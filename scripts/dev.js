@@ -8,7 +8,7 @@ const webpack = require('webpack')
 
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
-const config = require(utils.dir('config/project'))
+const config = utils.getProjectConfig()
 const webpackConfig = require(utils.dir('config/webpack/webpack.dev.conf'))
 
 ;(() => {

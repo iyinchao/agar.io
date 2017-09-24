@@ -8,7 +8,7 @@ const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const webpackBaseConf = require('./webpack.base.conf')
-const config = require(path.join(baseURL, 'config/project'))
+const config = utils.getProjectConfig()
 
 // Inject HMR client for entry.
 Object.keys(webpackBaseConf.entry).forEach((name) => {

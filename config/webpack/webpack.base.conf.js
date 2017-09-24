@@ -1,7 +1,7 @@
 const path = require('path')
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
-const config = require(path.join(baseURL, 'config/project'))
+const config = utils.getProjectConfig()
 
 const phaserDir = utils.dir('node_modules/phaser-ce')
 const assetSubDir = config.client.assetDir

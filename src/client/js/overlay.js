@@ -1,35 +1,14 @@
+import Promise from 'bluebird'
+
 import template from '@/html/overlay.html'
 import utils from '@/js/utils'
+import projectConfig from '~/config/project'
 
-// class Component {
-//   constructor (options) {
-//     if (!options) {
-//       utils.logger('error', '[class Component] Options must be specified in constructor')
-//       return
-//     }
+/* eslint-disable no-useless-escape */
+const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
 
-//     const defaultOptions = {
-
-//     }
-
-//     const opt = Object.assign({}, defaultOptions, options)
-//     this.dom = opt.dom
-//     this.parent = opt.parent
-//     // Gather
-//   }
-//   show () {
-//     this.dom.classList.remove('hidden')
-//   }
-//   hide () {
-//     this.dom.classList.add('hidden')
-//   }
-// }
-
-// class UserPanel extends Component {
-//   constructor (options) {
-//     super(options)
-//   }
-// }
+const passwordRegex = /^.{6,}$/
+/* eslint-enable no-useless-escape */
 
 class Overlay {
   constructor (option) {
@@ -53,9 +32,15 @@ class Overlay {
       }
     })
 
+    this.toastTimeout = 0
+    this.xhrList = []
+
     this.init()
   }
   init () {
+    this.refs.btLogin.addEventListener('click', (e) => {
+      this.onBtLoginClick(e)
+    })
     this.refs.btStartGame.addEventListener('click', (e) => {
       this.onBtStartGameClick(e)
     })
@@ -65,15 +50,74 @@ class Overlay {
     this.refs.btPlayAsGuest.addEventListener('click', (e) => {
       this.onBtPlayAsGuest(e)
     })
+    this.refs.switcherLogin.addEventListener('click', () => {
+      this.setUserPanelMode('login')
+    })
+    this.refs.switcherReg.addEventListener('click', () => {
+      this.setUserPanelMode('reg')
+    })
 
     // Check session storage
     this.setState('userPanel')
   }
   hide (dom) {
-    dom.classList.add('hidden')
+    if (!dom.classList.contains('hidden')) {
+      if (!dom.classList.contains('hide')) {
+        dom.addEventListener('transitionend', this.onHideTransitionEnd)
+        dom.classList.add('hide')
+      }
+    }
   }
   show (dom) {
-    dom.classList.remove('hidden')
+    if (dom.classList.contains('hidden')) {
+      dom.classList.remove('hidden')
+      dom.classList.add('hide')
+      setTimeout(() => {
+        console.log(dom.classList.contains('hide'))
+        dom.classList.remove('hide')
+      }, 20)
+    } else {
+      if (dom.classList.contains('hide')) {
+        dom.removeEventListener('transitionend', this.onHideTransitionEnd)
+        dom.classList.remove('hide')
+      }
+    }
+  }
+  onHideTransitionEnd (e) {
+    const target = e.target || e.srcElement
+    if (target !== this) {
+      return
+    }
+    if (target.classList.contains('hide')) {
+      target.classList.remove('hide')
+      target.classList.add('hidden')
+    }
+    target.removeEventListener('transitionend', this.onHideTransitionEnd)
+  }
+  showToast (content, option) {
+    if (!content) {
+      return
+    }
+
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout)
+      this.toastTimeout = 0
+    }
+
+    this.refs.toast.innerText = content
+
+    const op = Object.assign({}, {
+      timeout: 1000
+    }, option)
+
+    this.show(this.refs.toast)
+    this.toastTimeout = setTimeout(() => {
+      this.hideToast()
+      this.toastTimeout = 0
+    }, op.timeout)
+  }
+  hideToast () {
+    this.hide(this.refs.toast)
   }
   setState (state, option) {
     switch (state) {
@@ -84,6 +128,7 @@ class Overlay {
         this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
         this.hide(this.refs.leaderBoard)
+        this.setUserPanelMode('login')
         break
       case 'gamePanel':
         this.show(this.refs.mask)
@@ -118,6 +163,22 @@ class Overlay {
         break
     }
   }
+  setUserPanelMode (mode, option) {
+    switch (mode) {
+      case 'login':
+        this.refs.switcherLogin.classList.add('selected')
+        this.refs.switcherReg.classList.remove('selected')
+        this.show(this.refs.panelUserLogin)
+        this.hide(this.refs.panelUserReg)
+        break
+      case 'reg':
+        this.refs.switcherLogin.classList.remove('selected')
+        this.refs.switcherReg.classList.add('selected')
+        this.show(this.refs.panelUserReg)
+        this.hide(this.refs.panelUserLogin)
+        break
+    }
+  }
   setLoadingText (text) {
     this.refs.infoLoadingText.innerText = text
   }
@@ -139,6 +200,25 @@ class Overlay {
 
     this.refs.leaderBoardContent.innerHTML = html
   }
+  login (email, password) {
+    const xhr = new XMLHttpRequest()
+    this.xhrList['login'] = xhr
+    return new Promise((resolve, reject) => {
+      xhr.addEventListener('readystatechange', (e) => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          console.log(xhr)
+        }
+      })
+      xhr.addEventListener('error', (e) => {
+
+      })
+      xhr.open(
+        'GET',
+        `${projectConfig.server.host}/login?id=${email}&passwd=${password}`,
+        true)
+      xhr.send()
+    })
+  }
   onBtDiedRebornClick (e) {
     this.game.reborn()
       .then(() => {
@@ -148,13 +228,32 @@ class Overlay {
         console.log(e)
       })
   }
+  onBtLoginClick () {
+    const email = this.refs.loginEmail.value.trim()
+    const password = this.refs.loginPassword.value
+    // Check email
+    if (!emailRegex.test(email)) {
+      this.showToast('Email格式不正确')
+      this.refs.loginEmail.focus()
+      return
+    }
+
+    if (!passwordRegex.test(password)) {
+      this.showToast('密码至少需要6个字符')
+      this.refs.loginPassword.focus()
+      return
+    }
+
+    // Passed tests
+    this.login(email, password)
+  }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {
       this.game.$info.myName = this.refs.textNick.value
       this.game.state.start('game')
-      e.target.blur()
-      // this.hide(this.refs.mask)
-      this.hide(this.refs.panelGame)
+    } else {
+      this.showToast('球球需要一个昵称')
+      this.refs.textNick.focus()
     }
   }
   onBtPlayAsGuest (e) {

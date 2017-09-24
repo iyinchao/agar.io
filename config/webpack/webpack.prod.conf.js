@@ -12,7 +12,7 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin')
 const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const webpackBaseConf = require('./webpack.base.conf')
-const config = require(path.join(baseURL, 'config/project'))
+const config = utils.getProjectConfig()
 
 module.exports = merge(webpackBaseConf, {
   devtool: '#source-map',

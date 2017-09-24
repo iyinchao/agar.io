@@ -1,5 +1,4 @@
 import TinyColor from 'tinycolor2'
-import Pixi from 'pixi'
 
 export class Character {
   constructor (options) {

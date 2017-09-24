@@ -54,6 +54,36 @@ button.button {
       background-color: darken($colorYellow, 10%);
     }
   }
+  &.invisible {
+    background-color: transparent;
+    color: black;
+    box-shadow: none;
+    &:active {
+      background-color: rgba(white, 0.5);
+      box-shadow: $boxShadow1;
+    }
+  }
+}
+
+.toast {
+  padding: 8px 15px;
+  font-size: 14px;
+  border-radius: $borderRadius;
+  display: inline-block;
+  position: absolute;
+  background-color: rgba(black, 0.4);
+  color: white;
+  transform: translate(-50%);
+  left: 50%;
+  top: 20px;
+  z-index: 1;
+  transition: opacity 200ms;
+  &.hide {
+    opacity: 0
+  }
+  &.hidden {
+    display: none;
+  }
 }
 
 .input-text {

@@ -8,6 +8,7 @@ var account_handler = require("./account_handler");
 var logger = require("./logger").logger();
 var log4js = require("./logger").log4js;
 var ret_data = require("./ret_data");
+var cors = require('cors');
 //zxt
 
 
@@ -171,7 +172,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 	if(first_pos>=0 && first_pos<10000)
 	{
 		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip};
-	}	
+	}
 }
 
 function deleteSocketRecord(gameid, playerid)
@@ -194,7 +195,7 @@ io.on('connection', function(socket){
 		var currentPlayer = {
 			nickname: "jack"
 		};
-		
+
 		socket.on('join', function(player){
 			var ret_value = game.Join(player.nickname);
 			currentPlayer.nickname = player.nickname;
@@ -210,7 +211,7 @@ io.on('connection', function(socket){
 				if(activeGames[i]!== undefined && activeGames[i].gameid === ret_value.gameId && activeGames[i].playerid === ret_value.playerMainId)
 				{
 					pos = i;
-				}	
+				}
 				//if(activeGames[i]!== undefined && activeGames[i].playerip === socket.request.connection.remoteAddress)
 				//{
 				//	console.log("Zombie is to be deleted");
@@ -232,9 +233,9 @@ io.on('connection', function(socket){
 					console.log("NewPlayer_PlayerID :" + activeGames[i].playerid);
 					console.log("NewPlayer_SocketID :" + activeGames[i].socketid);
 					console.log("NewPlayer_PlayerID :" + activeGames[i].playerip);
-				}	
+				}
 			}
-			
+
 		});
 
 		socket.on('op', function(op){
@@ -307,6 +308,9 @@ function sceneUpdate()
 		}
 	}
 }
+
+// Allow cors
+server.use(cors())
 
 server.all("/*", checker);
 server.get("/register", on_register);

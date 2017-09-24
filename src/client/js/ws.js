@@ -4,20 +4,7 @@
  */
 
 import io from 'socket.io-client'
-
-// import { getConfigForEnv } from '~/config/project'
-
-// console.log(getConfigForEnv)
-
-// //const projectConfig = getConfigForEnv(process.env.NODE_ENV)
-
-// console.log(projectConfig)
-let url = ''
-if (process.env.NODE_ENV === 'development') {
-  url = 'http://localhost:3000'
-} else {
-  url = 'http://45.76.205.64:3000'
-}
+import projectConfig from '~/config/project'
 
 export class WS {
   constructor () {
@@ -25,7 +12,7 @@ export class WS {
   }
   factory () {
     return io(
-      url,
+      projectConfig.server.ws,
       { autoConnect: false })
   }
   on (type, cb) {

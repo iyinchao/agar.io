@@ -8,6 +8,7 @@
   right: 0;
   bottom: 0;
   pointer-events: none;
+  perspective: 2000px;
   #leader-board {
     min-width: 150px;
     max-width: 250px;
@@ -41,9 +42,34 @@
         font-weight: bold;
       }
     }
-    &.hidden {
+    &.hide {
       opacity: 0;
       pointer-events: none;
+    }
+    &.hidden {
+      display: none;
+    }
+  }
+  #login-switcher {
+    display: flex;
+    margin:0 -20px 20px -20px;
+    .switch {
+      flex: 1;
+      border: none;
+      background-color: transparent;
+      margin: 0;
+      padding: 8px 15px;
+      outline: none;
+      cursor: pointer;
+      &:active {
+        background-color: rgba(white, 0.5);
+      }
+      &.selected {
+
+        // box-shadow: $boxShadow0;
+        margin-bottom: -2px;
+        border-bottom: 2px solid $colorPrimary;
+      }
     }
   }
   .info {
@@ -58,9 +84,12 @@
     width: 100%;
     text-align: center;
     transition: opacity 250ms;
-    &.hidden {
+    &.hide {
       opacity: 0;
       pointer-events: none;
+    }
+    &.hidden {
+      display: none !important;
     }
     .button-wrapper {
       margin-top: 30px;
@@ -91,9 +120,15 @@
     pointer-events: auto;
     overflow-y: auto;
     overflow-x: hidden;
-    &.hidden {
+    transform: translate(-50%, -50%);
+    transition: transform 300ms, opacity 300ms;
+    &.hide {
       opacity: 0;
+      transform: translate(-50%, -70%) rotate3d(1,0,0, 20deg);
       pointer-events: none;
+    }
+    &.hidden {
+      display: none;
     }
     .title {
       font-size: 24px;
@@ -135,9 +170,12 @@
     bottom: 0;
     transition: opacity 400ms;
     pointer-events: auto;
-    &.hidden {
+    &.hide {
       opacity: 0;
       pointer-events: none;
+    }
+    &.hidden {
+      display: none;
     }
   }
   #game-panel, #user-panel {
@@ -147,7 +185,6 @@
     width: 340px;
     max-height: 100vh;
     max-width: 100vw;
-    transform: translate(-50%, -50%);
     &>.title {
       margin-bottom: 20px;
       .title-badge {
@@ -157,15 +194,23 @@
         top: 15px;
         font-size: 14px;
         font-weight: normal;
-        padding: 5px;
+        padding: 5px 12px;
         color: white;
         background-color: red;
-        transform: translateX(100%) rotate(10deg) skewY(-10deg);
+        box-shadow: $boxShadow0;
+        transform: translate(70%,15%) rotate(0deg);
+        border-radius: 14px;
+        border-top: 2px solid #ff9191;
+        border-bottom: 1px solid #ad0000;
       }
     }
   }
   .panel#user-panel {
-    // width: 400px;
+    [data-ref=panelUserLogin], [data-ref=panelUserReg] {
+      &.hide {
+        display: none;
+      }
+    }
   }
   .panel#game-panel {
 

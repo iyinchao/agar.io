@@ -1,8 +1,14 @@
 <div id="overlay">
-  <div class="toast" data-ref="toast"></div>
+  <div class="toast hidden" data-ref="toast"></div>
   <div id="leader-board", data-ref="leaderBoard">
     <div class="title">Big Monsters</div>
     <div data-ref="leaderBoardContent"></div>
+  </div>
+  <div id="controls">
+    <div class="control-panel">
+      <button data-ref="controlSplit" class="control"></button>
+      <button data-ref="massFood" class="control"></button>
+    </div>
   </div>
   <div id="mask" data-ref="mask"></div>
   <div data-ref="infoLoading" class="info"><div class="spinner"></div><span data-ref="infoLoadingText"></span></div>
@@ -16,31 +22,36 @@
   <div id="game-panel" class="panel" data-ref="panelGame">
     <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
     <input type="text" class="input-text row" data-ref="textNick" placeholder="输入昵称">
-    <div class="button-wrapper">
-      <button class="button yellow" data-ref="btChangeUser">换个身份</button>
-      <button class="button primary" data-ref="btStartGame">进入游戏</button>
-    </div>
+    <button class="button primary row" data-ref="btStartGame">进入游戏</button>
+    <button class="button invisible row" data-ref="btChangeUser">换个身份</button>
   </div>
-  <div id="user-panel" class="panel" data-ref="panelUser">
+  <div id="user-panel" class="panel hidden" data-ref="panelUser">
     <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
-    <div data-ref="panelUserReg">
-      <input type="text" class="input-text row" data-ref="regEmail" placeholder="输入Email">
-      <input type="text" class="input-text row" data-ref="regNick" placeholder="想个昵称呗">
-      <input type="password" class="input-text row" data-ref="regPassword" placeholder="输入密码">
-      <input type="password" class="input-text row" data-ref="regPasswordRep" placeholder="再重复一遍密码">
-      <button class="button primary row" data-ref="btRegister">注册</button>
+    <div data-ref="panelUserRegLogin">
+      <div data-ref="loginSwitcher" id="login-switcher">
+        <button class="switch" data-ref="switcherLogin">登录</button>
+        <button class="switch" data-ref="switcherReg">注册</button>
+      </div>
+      <div data-ref="panelUserReg">
+        <input type="text" class="input-text row" data-ref="regEmail" placeholder="输入Email">
+        <input type="text" class="input-text row" data-ref="regNick" placeholder="想个昵称呗">
+        <input type="password" class="input-text row" data-ref="regPassword" placeholder="输入密码">
+        <input type="password" class="input-text row" data-ref="regPasswordRep" placeholder="再重复一遍密码">
+        <button class="button primary row" data-ref="btRegister">注册</button>
+      </div>
+      <div data-ref="panelUserLogin">
+        <input type="text" class="input-text row" data-ref="loginEmail" placeholder="输入Email">
+        <input type="password" class="input-text row" data-ref="loginPassword" placeholder="输入密码">
+        <button class="button primary row" data-ref="btLogin">登录</button>
+      </div>
     </div>
-    <div data-ref="panelUserLogin">
-      <input type="text" class="input-text row" data-ref="loginEmail" placeholder="输入Email">
-      <input type="password" class="input-text row" data-ref="loginPassword" placeholder="输入密码">
-      <button class="button primary row" data-ref="btLogin">登录</button>
-    </div>
+    
     <div data-ref="panelUserLoading">
 
     </div>
     <div class="text-divider">或者</div>
     <div data-ref="panelGuest">
-      <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，不想注册</button>
+      <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，我就玩玩</button>
     </div>
   </div>
 </div>
