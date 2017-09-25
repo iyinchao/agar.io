@@ -161,6 +161,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 {
 	console.log("Inserting user");
 	var first_pos = -1;
+	var timestamp = (new Date().getTime())/1000;
 	for(var i=0;i<10000;i++)
 	{
 		if(activeGames[i] === undefined)
@@ -171,7 +172,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 	}
 	if(first_pos>=0 && first_pos<10000)
 	{
-		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip};
+		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip, timestamp:timestamp};
 	}
 }
 
@@ -186,6 +187,18 @@ function deleteSocketRecord(gameid, playerid)
 			activeGames[i].gameid = -1;
 			activeGames[i].playerid = -1;
 			activeGames[i] = undefined;
+		}
+	}
+}
+
+function updateTimeStamp(gameID, userID)
+{
+	var timestamp = (new Date().getTime())/1000;
+	for(var i=0;i<10000;i++)
+	{
+		if(activeGames[i] !== undefined && activeGames[i].gameid === gameID && activeGames[i].playerid === userID)
+		{
+			activeGames[i].timestamp = timestamp;
 		}
 	}
 }
@@ -251,7 +264,9 @@ io.on('connection', function(socket){
 			{
 				game.Split(op.gameID, op.userID);
 			}
+			updateTimeStamp(op.GameID, op.userID);
 		});
+
 		socket.on('playerchart',function(message){
 			var msg_sender = message.sender.replace(/(<([^>]+)>)/ig, '');
 			var msg_text = message.text.replace(/(<([^>]+)>)/ig, '');
@@ -291,6 +306,9 @@ io.on('connection', function(socket){
 			}
 		});
 
+		socket.on('heartbeat', function(message){
+			updateTimeStamp(message.gameID, message.userID);
+		});
 });
 
 function sceneUpdate()
@@ -309,6 +327,23 @@ function sceneUpdate()
 	}
 }
 
+function cleanZombeUsers()
+{
+	var timestamp = (new Date().getTime())/1000;
+	for(var i=0;i<10000;i++)
+	{
+		if(activeGames[i] != undefined && (timestamp - activeGames[i].timestamp >= 10))
+		{
+			//game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+			//activeGames[i].gameid = -1;
+			//activeGames[i].playerid = -1;
+			//activeGames[i].playerip = -1;
+			//activeGames[i].timestamp = -1;
+			//activeGames[i] = undefined;
+		}	
+	}
+}
+
 // Allow cors
 server.use(cors())
 
@@ -319,7 +354,7 @@ server.get("/logout", on_exit);
 server.get("/top", on_top_n);
 
 setInterval(sceneUpdate, 25);
-
+setInterval(cleanZombeUsers, 10000);
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
 http.listen(serverport, ipaddress, function(){
