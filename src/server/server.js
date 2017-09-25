@@ -282,7 +282,7 @@ io.on('connection', function(socket){
 			{
 				if(activeGames[i].gametid === game_id)
 				{
-					sockets[activeGames[i].socketid].emit('playerchatbroadcast',{sender:msg_sender, text:msg_text.substring(0,35)});
+					sockets[activeGames[i].socketid].emit('playerchatbroadcast',{sender:msg_sender, text:msg_text});
 				}
 			}
 		});
