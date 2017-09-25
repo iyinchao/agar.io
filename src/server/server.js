@@ -290,7 +290,7 @@ io.on('connection', function(socket){
 			console.log('[INFO] Player_name[' + currentPlayer.nickname + '] disconnected!!');
 			console.log('[INFO] Player_GameID[' + currentPlayer.gameid + '] disconnected!!');
 			console.log('[INFO] Player_PlayerID[' + currentPlayer.playerid + '] disconnected!!');
-			//game.Exit(currentPlayer.gameid, currentPlayer.playerid);
+			game.Exit(currentPlayer.gameid, currentPlayer.playerid);
 			//deleteSocketRecord(currentPlayer.gameid, currentPlayer.playerid);
 		});
 
