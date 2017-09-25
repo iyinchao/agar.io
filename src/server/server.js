@@ -380,7 +380,7 @@ server.get("/logout", on_exit);
 server.get("/top", on_top_n);
 
 setInterval(sceneUpdate, 25);
-//setInterval(cleanZombeUsers, 10000);
+///////setInterval(cleanZombeUsers, 10000);
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
 http.listen(serverport, ipaddress, function(){
