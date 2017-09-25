@@ -358,6 +358,7 @@ function cleanZombeUsers()
 				//console.log("CleanZombe_GameID:"+gameID);
 				//console.log("CleanZombe_PlayerID:"+playerID);
 				game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+				sockets[activeGames[i].socketid].emit("exited", "No player input, kick off");
 				activeGames[i].gameid = -1;
 				activeGames[i].playerid = -1;
 				activeGames[i].playerip = -1;
