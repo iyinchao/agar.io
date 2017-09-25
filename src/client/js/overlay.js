@@ -6,7 +6,7 @@ import projectConfig from '~/config/project'
 
 /* eslint-disable no-useless-escape */
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-
+const nickRegex = /^.{1,}$/
 const passwordRegex = /^.{6,}$/
 /* eslint-enable no-useless-escape */
 
@@ -41,6 +41,9 @@ class Overlay {
     this.refs.btLogin.addEventListener('click', (e) => {
       this.onBtLoginClick(e)
     })
+    this.refs.btRegister.addEventListener('click', (e) => {
+      this.onBtRegisterClick(e)
+    })
     this.refs.btStartGame.addEventListener('click', (e) => {
       this.onBtStartGameClick(e)
     })
@@ -54,7 +57,10 @@ class Overlay {
       this.setUserPanelMode('login')
     })
     this.refs.switcherReg.addEventListener('click', () => {
-      this.setUserPanelMode('reg')
+      this.setUserPanelMode('register')
+    })
+    this.refs.btChangeRole.addEventListener('click', (e) => {
+      this.onBtChangeRoleClick(e)
     })
 
     // Check session storage
@@ -164,18 +170,32 @@ class Overlay {
     }
   }
   setUserPanelMode (mode, option) {
+    const op = Object.assign(
+      {},
+      { loadingText: '请稍候...' },
+      option)
+
     switch (mode) {
       case 'login':
         this.refs.switcherLogin.classList.add('selected')
         this.refs.switcherReg.classList.remove('selected')
+        this.show(this.refs.panelUserContent)
+        this.hide(this.refs.panelUserLoading)
         this.show(this.refs.panelUserLogin)
         this.hide(this.refs.panelUserReg)
         break
-      case 'reg':
+      case 'register':
         this.refs.switcherLogin.classList.remove('selected')
         this.refs.switcherReg.classList.add('selected')
+        this.show(this.refs.panelUserContent)
+        this.hide(this.refs.panelUserLoading)
         this.show(this.refs.panelUserReg)
         this.hide(this.refs.panelUserLogin)
+        break
+      case 'loading':
+        this.hide(this.refs.panelUserContent)
+        this.show(this.refs.panelUserLoading)
+        this.refs.panelUserLoadingText.innerText = op.loadingText
         break
     }
   }
@@ -232,6 +252,38 @@ class Overlay {
       this.xhrList['login'] = null
     })
   }
+  register (email, nick, password) {
+    const xhr = new XMLHttpRequest()
+    this.xhrList['register'] = xhr
+    return new Promise((resolve, reject) => {
+      xhr.addEventListener('readystatechange', (e) => {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+          let res
+          try {
+            res = JSON.parse(xhr.responseText)
+          } catch (e) {
+            reject(new Error('network'))
+            return
+          }
+          if (res && res.ret_code === 0) {
+            resolve(res)
+          } else {
+            reject(new Error('register'))
+          }
+        }
+      })
+      xhr.addEventListener('error', (e) => {
+        reject(new Error('network'))
+      })
+      xhr.open(
+        'GET',
+        `${projectConfig.server.host}/register?id=${email}&name=${nick}&passwd=${password}`,
+        true)
+      xhr.send()
+    }).finally(() => {
+      this.xhrList['register'] = null
+    })
+  }
   onBtDiedRebornClick (e) {
     this.game.reborn()
       .then(() => {
@@ -258,14 +310,95 @@ class Overlay {
     }
 
     // Passed tests
+    this.setUserPanelMode('loading', { loadingText: '正在登录...' })
+
     if (this.xhrList['login']) {
       return
     }
+
     this.login(email, password).then((res) => {
       console.log(res)
+
+      setTimeout(() => {
+        this.showToast(`${res.nick_name}, 欢迎回来`)
+        // FIXME: Mocked
+        this.setState('gamePanel')
+      }, 1000)
     }).catch((e) => {
       console.log(e.message)
+      this.setUserPanelMode('login')
+      switch (e.message) {
+        case 'login':
+          this.showToast('登录失败，用户名或密码错误')
+          break
+        case 'network':
+          this.showToast('网络错误')
+          break
+      }
     })
+  }
+  onBtRegisterClick (e) {
+    const email = this.refs.regEmail.value.trim()
+    const nick = this.refs.regNick.value.trim()
+    const password = this.refs.regPassword.value
+    const passwordRep = this.refs.regPasswordRep.value
+
+    if (!emailRegex.test(email)) {
+      this.showToast('Email格式不正确')
+      this.refs.regEmail.focus()
+      return
+    }
+
+    if (!nickRegex.test(nick)) {
+      this.showToast('昵称不能为空')
+      this.refs.regNick.focus()
+      return
+    }
+
+    if (!passwordRegex.test(password)) {
+      this.showToast('密码至少需要6个字符')
+      this.refs.regPassword.focus()
+      return
+    }
+
+    if (passwordRep !== password) {
+      this.showToast('两次输入的密码不一致')
+      this.refs.regPasswordRep.focus()
+      return
+    }
+
+    //
+    this.setUserPanelMode('loading', { loadingText: '正在注册...' })
+
+    if (this.xhrList['register']) {
+      return
+    }
+
+    this.register(email, nick, password).then((res) => {
+      console.log(res)
+
+      setTimeout(() => {
+        this.showToast('注册成功')
+        // FIXME: Mocked
+        this.setUserPanelMode('login')
+      }, 1000)
+
+    }).catch((e) => {
+      console.log(e.message)
+      this.setUserPanelMode('register')
+      switch (e.message) {
+        case 'register':
+          this.showToast('注册失败，Email可能已被注册')
+          break
+        case 'network':
+          this.showToast('网络错误')
+          break
+      }
+    })
+  }
+  onBtChangeRoleClick (e) {
+    // TODO: Logout if needed
+    this.setState('userPanel')
   }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {
