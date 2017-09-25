@@ -194,11 +194,17 @@ function deleteSocketRecord(gameid, playerid)
 
 function updateTimeStamp(gameID, userID)
 {
+
+	//console.log("updateTimeStamp");
+	//console.log("updateTimeStamp:"+ gameID);
+	//console.log("updateTimeStamp:"+ userID);
 	var timestamp = (new Date().getTime())/1000;
+	
 	for(var i=0;i<c.maxPlayers;i++)
 	{
 		if(activeGames[i] !== undefined && activeGames[i].gameid === gameID && activeGames[i].playerid === userID)
 		{
+			//console.log("timestamp:"+timestamp);
 			activeGames[i].timestamp = timestamp;
 		}
 	}
@@ -253,6 +259,9 @@ io.on('connection', function(socket){
 		});
 
 		socket.on('op', function(op){
+			updateTimeStamp(op.gameID, op.userID);
+		//	console.log("In socket op:"+op.gameID);
+		//	console.log("In socket op:"+op.userID);
 			if(op.t === "mv")//player move
 			{
 				game.Move(op.gameID, op.userID, op.x, op.y);
@@ -265,7 +274,6 @@ io.on('connection', function(socket){
 			{
 				game.Split(op.gameID, op.userID);
 			}
-			updateTimeStamp(op.GameID, op.userID);
 		});
 
 		socket.on('playerchart',function(message){
@@ -339,18 +347,23 @@ function cleanZombeUsers()
 	var playerID;
 	for(var i=0;i<c.maxPlayers;i++)
 	{
-		if(activeGames[i] != undefined && (timestamp - activeGames[i].timestamp >= 10000))
+		if(activeGames[i] != undefined)
 		{
-			gameID = activeGames[i].gameid;
-			playerID = activeGames[i].playerid;
-			console.log("CleanZombe_GameID:"+gameID);
-			console.log("CleanZombe_PlayerID:"+playerID);
-			game.Exit(activeGames[i].gameid, activeGames[i].playerid);
-			activeGames[i].gameid = -1;
-			activeGames[i].playerid = -1;
-			activeGames[i].playerip = -1;
-			activeGames[i].timestamp = -1;
-			activeGames[i] = undefined;
+			//console.log("TimeStampNow:"+timestamp);
+			//console.log("TimeStampLast:"+activeGames[i].timestamp);
+			if(timestamp - activeGames[i].timestamp >= 10)
+			{
+				gameID = activeGames[i].gameid;
+				playerID = activeGames[i].playerid;
+				//console.log("CleanZombe_GameID:"+gameID);
+				//console.log("CleanZombe_PlayerID:"+playerID);
+				game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+				activeGames[i].gameid = -1;
+				activeGames[i].playerid = -1;
+				activeGames[i].playerip = -1;
+				activeGames[i].timestamp = -1;
+				activeGames[i] = undefined;
+			}
 		}	
 	}
 }
