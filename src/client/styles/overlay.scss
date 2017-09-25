@@ -211,15 +211,28 @@
         display: none;
       }
     }
+    [data-ref=panelUserContent] {
+      &.hide {
+        display: none;
+      }
+    }
     [data-ref=panelUserLoading] {
       text-align: center;
       .spinner {
         display: inline-block;
         margin-bottom: 20px;
+        background-color: $colorPrimary;
+      }
+      &.hide {
+        display: none;
       }
     }
   }
   .panel#game-panel {
-
+    [data-ref=btChangeRole] {
+      &:active {
+        background-color: $colorYellow;
+      }
+    }
   }
 }
