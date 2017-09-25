@@ -162,7 +162,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 	console.log("Inserting user");
 	var first_pos = -1;
 	var timestamp = (new Date().getTime())/1000;
-	for(var i=0;i<10000;i++)
+	for(var i=0;i<c.maxPlayers;i++)
 	{
 		if(activeGames[i] === undefined)
 		{
@@ -170,7 +170,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 			break;
 		}
 	}
-	if(first_pos>=0 && first_pos<10000)
+	if(first_pos>=0 && first_pos<c.maxPlayers)
 	{
 		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip, timestamp:timestamp};
 	}
@@ -178,7 +178,8 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 
 function deleteSocketRecord(gameid, playerid)
 {
-	for(var i=0;i<10000;i++)
+	console.log("GameID:"+gameid+ " PlayerID:"+playerid);
+	for(var i=0;i<c.maxPlayers;i++)
 	{
 		if(activeGames[i] !== undefined && activeGames[i].gameid === gameid && activeGames[i].playerid === playerid)
 		{
@@ -194,7 +195,7 @@ function deleteSocketRecord(gameid, playerid)
 function updateTimeStamp(gameID, userID)
 {
 	var timestamp = (new Date().getTime())/1000;
-	for(var i=0;i<10000;i++)
+	for(var i=0;i<c.maxPlayers;i++)
 	{
 		if(activeGames[i] !== undefined && activeGames[i].gameid === gameID && activeGames[i].playerid === userID)
 		{
@@ -219,7 +220,7 @@ io.on('connection', function(socket){
 			socket.emit('scene-setup', ret_value);
 			sockets[socket.id] = socket; //将玩家的socket记录下来
 			var pos = -1;
-			for(var i=0;i<10000;i++)
+			for(var i=0;i<c.maxPlayers;i++)
 			{
 				if(activeGames[i]!== undefined && activeGames[i].gameid === ret_value.gameId && activeGames[i].playerid === ret_value.playerMainId)
 				{
@@ -238,7 +239,7 @@ io.on('connection', function(socket){
 				insertNewSocketRecord(ret_value.gameId, ret_value.playerMainId, socket.id, socket.request.connection.remoteAddress);
 			}
 
-			for(var i=0;i<10000;i++)
+			for(var i=0;i<c.maxPlayers;i++)
 			{
 				if(activeGames[i]!== undefined)
 				{
@@ -271,14 +272,14 @@ io.on('connection', function(socket){
 			var msg_sender = message.sender.replace(/(<([^>]+)>)/ig, '');
 			var msg_text = message.text.replace(/(<([^>]+)>)/ig, '');
 			var game_id = -1;
-			for(var i=0;i<10000;i++)
+			for(var i=0;i<c.maxPlayers;i++)
 			{
 				if(activeGames[i].socketid === socket.id)
 				{
 					game_id = activeGames[i].gameid;
 				}
 			}
-			for(var i=0;i<10000;i++)
+			for(var i=0;i<c.maxPlayers;i++)
 			{
 				if(activeGames[i].gametid === game_id)
 				{
@@ -287,11 +288,15 @@ io.on('connection', function(socket){
 			}
 		});
 		socket.on('disconnect', function(){
+			var gameID = currentPlayer.gameid;
+			var PlayerID = currentPlayer.playerid;
 			console.log('[INFO] Player_name[' + currentPlayer.nickname + '] disconnected!!');
 			console.log('[INFO] Player_GameID[' + currentPlayer.gameid + '] disconnected!!');
 			console.log('[INFO] Player_PlayerID[' + currentPlayer.playerid + '] disconnected!!');
 			game.Exit(currentPlayer.gameid, currentPlayer.playerid);
-			//deleteSocketRecord(currentPlayer.gameid, currentPlayer.playerid);
+			
+			deleteSocketRecord(gameID, PlayerID);
+			printAllPlayers();
 		});
 
 		socket.on('exit', function(message){
@@ -314,7 +319,7 @@ io.on('connection', function(socket){
 function sceneUpdate()
 {
 	var diff = [];
-	for(var i=0;i<1000;i++)
+	for(var i=0;i<c.maxPlayers;i++)
 	{
 		if(activeGames[i] !== undefined)
 		{
@@ -330,16 +335,22 @@ function sceneUpdate()
 function cleanZombeUsers()
 {
 	var timestamp = (new Date().getTime())/1000;
-	for(var i=0;i<10000;i++)
+	var gameID;
+	var playerID;
+	for(var i=0;i<c.maxPlayers;i++)
 	{
-		if(activeGames[i] != undefined && (timestamp - activeGames[i].timestamp >= 10))
+		if(activeGames[i] != undefined && (timestamp - activeGames[i].timestamp >= 10000))
 		{
-			//game.Exit(activeGames[i].gameid, activeGames[i].playerid);
-			//activeGames[i].gameid = -1;
-			//activeGames[i].playerid = -1;
-			//activeGames[i].playerip = -1;
-			//activeGames[i].timestamp = -1;
-			//activeGames[i] = undefined;
+			gameID = activeGames[i].gameid;
+			playerID = activeGames[i].playerid;
+			console.log("CleanZombe_GameID:"+gameID);
+			console.log("CleanZombe_PlayerID:"+playerID);
+			game.Exit(activeGames[i].gameid, activeGames[i].playerid);
+			activeGames[i].gameid = -1;
+			activeGames[i].playerid = -1;
+			activeGames[i].playerip = -1;
+			activeGames[i].timestamp = -1;
+			activeGames[i] = undefined;
 		}	
 	}
 }
@@ -360,3 +371,46 @@ var serverport = '3000';
 http.listen(serverport, ipaddress, function(){
 	console.log('[INFO] Server is listening on ' + ipaddress + ':' +serverport);
 });
+
+function TestFoo()
+{
+	c.maxFood = 0;
+	c.maxVirus = 0;
+	var ret1;
+	var ret2;
+	var ret3;
+	ret1 = game.Join('player1');
+	ret2 = game.Join('player2');
+	ret3 = game.Join('player3');
+
+	console.log("GameID1:"+ret1.gameId+" UserID1:"+ret1.playerMainId);
+	console.log("GameID2:"+ret2.gameId+" UserID2:"+ret2.playerMainId);
+	console.log("GameID3:"+ret3.gameId+" UserID3:"+ret3.playerMainId);
+
+	game.Update(ret1.gameId);
+	game.Update(ret2.gameId);
+	game.Update(ret3.gameId);
+
+	game.Exit(ret1.gameId, ret1.playerMainId);
+
+	console.log(game.Update(ret2.gameId));
+	console.log(game.Update(ret3.gameId));
+}
+
+function printAllPlayers()
+{
+	for(var i=0;i<c.maxPlayers;i++)
+	{
+		if(activeGames[i]!==undefined)
+		{
+			console.log("Player["+i+"]:");
+			console.log("{");
+			console.log("   [GameID]:"+activeGames[i].gameid);
+			console.log("   [PlayerID]:"+activeGames[i].playerid);
+			console.log("   [PlayerIP]:"+activeGames[i].playerip);
+			console.log("   [Timestamp]:"+activeGames[i].timestamp);
+			console.log("}");
+		}
+	}
+}
+//TestFoo();
