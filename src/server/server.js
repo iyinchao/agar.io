@@ -359,6 +359,7 @@ function cleanZombeUsers()
 				//console.log("CleanZombe_PlayerID:"+playerID);
 				game.Exit(activeGames[i].gameid, activeGames[i].playerid);
 				sockets[activeGames[i].socketid].emit("exited", "No player input, kick off");
+				sockets[activeGames[i].socketid].disconnect();
 				activeGames[i].gameid = -1;
 				activeGames[i].playerid = -1;
 				activeGames[i].playerip = -1;
@@ -379,7 +380,7 @@ server.get("/logout", on_exit);
 server.get("/top", on_top_n);
 
 setInterval(sceneUpdate, 25);
-setInterval(cleanZombeUsers, 10000);
+//setInterval(cleanZombeUsers, 10000);
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
 http.listen(serverport, ipaddress, function(){
