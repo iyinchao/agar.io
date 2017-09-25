@@ -27,7 +27,7 @@
   </div>
   <div id="user-panel" class="panel hidden" data-ref="panelUser">
     <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
-    <div data-ref="panelUserRegLogin">
+    <div data-ref="panelUserContent">
       <div data-ref="loginSwitcher" id="login-switcher">
         <button class="switch" data-ref="switcherLogin">登录</button>
         <button class="switch" data-ref="switcherReg">注册</button>
@@ -44,14 +44,15 @@
         <input type="password" class="input-text row" data-ref="loginPassword" placeholder="输入密码">
         <button class="button primary row" data-ref="btLogin">登录</button>
       </div>
+      <div class="text-divider">或者</div>
+      <div data-ref="panelGuest">
+        <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，我就玩玩</button>
+      </div>
     </div>
     
     <div data-ref="panelUserLoading">
-
-    </div>
-    <div class="text-divider">或者</div>
-    <div data-ref="panelGuest">
-      <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，我就玩玩</button>
+        <div class="spinner"></div>
+        <div data-ref="panelUserLoadingText">正在登录...</div>
     </div>
   </div>
 </div>

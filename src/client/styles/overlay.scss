@@ -211,6 +211,13 @@
         display: none;
       }
     }
+    [data-ref=panelUserLoading] {
+      text-align: center;
+      .spinner {
+        display: inline-block;
+        margin-bottom: 20px;
+      }
+    }
   }
   .panel#game-panel {
 

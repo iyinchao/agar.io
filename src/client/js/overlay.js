@@ -206,17 +206,30 @@ class Overlay {
     return new Promise((resolve, reject) => {
       xhr.addEventListener('readystatechange', (e) => {
         if (xhr.readyState === 4 && xhr.status === 200) {
-          console.log(xhr)
+          let res
+          try {
+            res = JSON.parse(xhr.responseText)
+          } catch (e) {
+            reject(new Error('network'))
+            return
+          }
+          if (res && res.ret_code === 0) {
+            resolve(res)
+          } else {
+            reject(new Error('login'))
+          }
         }
       })
       xhr.addEventListener('error', (e) => {
-
+        reject(new Error('network'))
       })
       xhr.open(
         'GET',
         `${projectConfig.server.host}/login?id=${email}&passwd=${password}`,
         true)
       xhr.send()
+    }).finally(() => {
+      this.xhrList['login'] = null
     })
   }
   onBtDiedRebornClick (e) {
@@ -245,7 +258,14 @@ class Overlay {
     }
 
     // Passed tests
-    this.login(email, password)
+    if (this.xhrList['login']) {
+      return
+    }
+    this.login(email, password).then((res) => {
+      console.log(res)
+    }).catch((e) => {
+      console.log(e.message)
+    })
   }
   onBtStartGameClick (e) {
     if (this.refs.textNick.value) {
