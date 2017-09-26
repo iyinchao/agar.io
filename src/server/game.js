@@ -403,7 +403,7 @@ function DetectCollision(game)
                 var obj = game.others[objID];
                 var ret = CollideWithObject(pg.players[i], obj, game);
                 if (ret.length > 0) {
-                    cell.concat(ret);
+                    cell = cell.concat(ret);
                 }
                 if (obj.weight == 0) {
                     delete game.others[obj.id];
@@ -564,19 +564,23 @@ exports.Eject = Eject;
 function TestFoo()
 {
     var ret = Join('pp');
-    var game = gameRefs[0];
-    cfg.maxFood = 1;
-    cfg.maxVirus= 0;
-    FillEatable(game);
+    cfg.maxFood = 0;
+    cfg.maxVirus = 0;
 
-    Split(0,0);
-    console.log(Update(0));
-    console.log(Update(0));
-    ret = Join('p2');
-    console.log(Update(0));
-    ret = Join('p3');
-    console.log(Update(0));
-    console.log(Update(0));
+    var game = gameRefs[0];
+    var virus = GenerateGameObject(OBJECT_TYPE.VIRUS);
+    var pg = game.moveables[0];
+    virus.id = game.curObjId++;
+    pg.players[0].weight = 4000;
+    virus.x = pg.players[0].x;
+    virus.y = pg.players[0].y + 70;
+    game.others[virus.id] = virus;
+    game.virusCount++;
+    game.changeObj.push(new NewSceneObject(virus));
+
+    console.log(Update(0)[1].cells);
+    console.log(Update(0)[0].cells);
+    console.log(Update(0)[1].cells);
 }
 
 //TestFoo();
