@@ -44,7 +44,7 @@
     "massRadius": 30,
 
     "weightXspeed": 300,
-    "minPlayerSpeed": 5,
+    "minPlayerSpeed": 10,
 
     "adminPass": "DEFAULT",
     "gameMass": 20000,
