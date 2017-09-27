@@ -60,9 +60,6 @@ const States = {
         this.g.$foodList.clear()
         if (e.setup && e.setup.length) {
           e.setup.forEach((obj) => {
-            if (obj.t !== 1 && obj.t !== 2) {
-              console.log(obj)
-            }
             switch (obj.t) {
               case 2:
                 // food
@@ -77,6 +74,10 @@ const States = {
               case 1:
                 // player
                 this.g.addCharacter('player', obj)
+                break
+              case 3:
+                // Virus
+                this.g.addCharacter('virus', obj)
             }
           })
         }
@@ -127,8 +128,10 @@ const States = {
                       this.g.$overlay.setState('died')
                     }
                     p = this.g.removeCharacter('player', diff.id)
-                    p.destroy()
-                    p = null
+                    if (p) {
+                      p.destroy()
+                      p = null
+                    }
                     break
                 }
                 break
@@ -478,7 +481,7 @@ const Callbacks = {
           gameID: this.game.$info.gameId
         })
         break
-      case 'keyW':
+      case 'KeyW':
         this.game.$ws.emit('op', {
           t: 'w',
           userID: this.game.$info.userId,
@@ -681,6 +684,13 @@ class Game extends Phaser.Game {
         }
       }
     })
+
+    this.$virusList.forEach((virus) => {
+      if (this.isInView(virus)) {
+        this.$renderList.push(virus)
+      }
+    })
+
   }
   isInView (character) {
     if (!this.$viewRect) {
@@ -704,7 +714,6 @@ class Game extends Phaser.Game {
       bottom: (this.camera.y + this.camera.height) / this.camera.scale.y,
       right: (this.camera.x + this.camera.width) / this.camera.scale.x
     }
-
     return rect
   }
 }
