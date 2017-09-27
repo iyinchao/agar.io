@@ -16,6 +16,15 @@ const overlay = new Overlay({
 overlay.game = game
 game.$overlay = overlay
 
+// Init pahser globals
+window.PhaserGlobal = {}
+
+if (process.env.NODE_ENV === 'production') {
+  window.PhaserGlobal.hideBanner = true
+} else if (process.env.NODE_ENV === 'development') {
+  window.PhaserGlobal.hideBanner = false
+}
+
 // ws.socket.on('connect', (e) => {
 //   console.log('connected')
 //   ws.socket.emit('playerlogin', {

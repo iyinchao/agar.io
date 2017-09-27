@@ -1,4 +1,5 @@
 import TinyColor from 'tinycolor2'
+import gameConfig from '~/config/game'
 
 export class Character {
   constructor (options) {
@@ -16,21 +17,6 @@ export class Character {
   }
   destroy () {
 
-  }
-}
-
-export class Cell extends Character {
-  constructor (option) {
-    super(option)
-    this._hexColor = option._hexColor
-    this._hexFillColor = option._hexFillColor
-  }
-  update () {
-    this.game.$graphics.lineStyle(10, this._hexColor, 1)
-    this.game.$graphics.beginFill(this._hexFillColor, 1)
-    this.game.$graphics.drawCircle(this.x, this.y, this.radius)
-    this.game.$graphics.endFill()
-    this.game.$graphics.lineWidth = 0
   }
 }
 
@@ -145,49 +131,27 @@ export class Food extends Character {
   constructor (options) {
     super(options)
     this._hexColor = this.hueToHex(this.hue)
-    this._polygon = null
   }
   update () {
-    // this.game.$graphics.beginFill(0xa92cc8, 1)
-    // this.game.$graphics.drawCircle(this.position.x, this.position.y, 20)
-    // this.game.$graphics.endFill()
-    // console.log(this._hexColor)
-    // this.game.$graphics.beginFill(0xa92cc8, 1)
-    // this.game.$graphics.drawCircle(this.x, this.y, 20)
-    // this.game.drawCircle(this.x, this.y, this.radius, 6)
-
-    // this.game.$graphics.beginFill(this._hexColor)
-    // this.game.drawCircle(this.x, this.y, this.r, 6)
-
     this.game.$graphics.beginFill(this._hexColor)
-    // this.game.$graphics.drawCircle(this.x, this.y, 2 * this.r)
     this.game.drawCircle(this.x, this.y, this.r, 6)
     this.game.$graphics.endFill()
-    // Generate polygon points
-
-    // this.game.$graphics.beginFill(this._hexColor)
-    // if (!this._polygon) {
-    //   let edges = 6
-    //   let polygonPoints = []
-    //   for (let i = 0; i <= edges; i++) {
-    //     let angle = Math.PI / 180 * (360 / edges) * i
-    //     polygonPoints.push(this.x + Math.cos(angle) * this.r)
-    //     polygonPoints.push(this.y + Math.sin(angle) * this.r)
-    //   }
-    //   this._polygon = new Pixi.Polygon(polygonPoints)
-    // }
-
-    // this.game.$graphics.drawShape(this._polygon)
   }
 }
-
 
 export class Virus extends Character {
   constructor (options) {
     super(options)
-    this._hexColor = this.hueToHex(110)
+    this._hexColor = this.hueToHex(gameConfig.virus.hue)
+    this._hexFillColor = parseInt(
+      TinyColor({h: this.hue, s: 100, v: 100}).darken(10).toHex(),
+      16)
   }
   update () {
-
+    this.game.$graphics.lineStyle(10, this._hexColor, 1)
+    this.game.$graphics.beginFill(this._hexFillColor)
+    this.game.drawVirus(this.x, this.y, this.r, 6)
+    this.game.$graphics.endFill()
+    this.game.$graphics.lineWidth = 0
   }
 }
