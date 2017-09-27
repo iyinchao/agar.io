@@ -345,7 +345,7 @@ function UpdatePosition(pg)
 
 var beEat = 0;
 
-function CollideWithObject(player, obj, game)
+function CollideWithObject(player, obj, game, nrPlayers)
 {
     var dis = util.Distance(player, obj);
     if (dis < player.radius && player.radius > obj.radius * cfg.sizeToEat) {
@@ -357,7 +357,8 @@ function CollideWithObject(player, obj, game)
         }
         if (obj.type == OBJECT_TYPE.VIRUS) {
             game.virusCount--;
-            return DoMultiSplit(player);
+            if (nrPlayers < cfg.maxCellCount)
+                return DoMultiSplit(player);
         } else if (obj.type == OBJECT_TYPE.FOOD) {
             game.foodCount--;
             beEat++;
@@ -401,7 +402,8 @@ function DetectCollision(game)
             // collide with food, virus and mass
             for (var objID in game.others) {
                 var obj = game.others[objID];
-                var ret = CollideWithObject(pg.players[i], obj, game);
+                var ret = CollideWithObject(pg.players[i], obj, game,
+                    cell.length + pg.players.length - i);
                 if (ret.length > 0) {
                     cell = cell.concat(ret);
                 }
