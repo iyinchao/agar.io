@@ -133,10 +133,15 @@ function FillEatable(game)
 
     while (game.virusCount < cfg.maxVirus) {
         var virus = GenerateGameObject(OBJECT_TYPE.VIRUS);
+        var R = cfg.virusRadius;
+        virus.x = util.randomInRange(5 * R, cfg.gameWidth - 5 * R);
+        virus.y = util.randomInRange(5 * R, cfg.gameHeight - 5 * R);
         virus.id = game.curObjId++;
         game.others[virus.id] = virus;
         game.virusCount++;
-        game.changeObj.push(new NewSceneObject(virus));
+        var nso = new NewSceneObject(virus);
+        delete nso.hue;
+        game.changeObj.push(nso);
     }
 }
 
@@ -566,23 +571,14 @@ exports.Eject = Eject;
 function TestFoo()
 {
     var ret = Join('pp');
-    cfg.maxFood = 0;
-    cfg.maxVirus = 0;
+    cfg.maxFood = 1;
+    cfg.maxVirus = 1;
+    console.log(ret);
 
-    var game = gameRefs[0];
-    var virus = GenerateGameObject(OBJECT_TYPE.VIRUS);
-    var pg = game.moveables[0];
-    virus.id = game.curObjId++;
-    pg.players[0].weight = 4000;
-    virus.x = pg.players[0].x;
-    virus.y = pg.players[0].y + 70;
-    game.others[virus.id] = virus;
-    game.virusCount++;
-    game.changeObj.push(new NewSceneObject(virus));
 
-    console.log(Update(0)[1].cells);
-    console.log(Update(0)[0].cells);
-    console.log(Update(0)[1].cells);
+    console.log(Update(0));
+    console.log(Update(0));
+    console.log(Update(0));
 }
 
 //TestFoo();
