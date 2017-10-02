@@ -1,4 +1,4 @@
-process.env.NODE_ENV = '"development"' // Force env to be 'development'
+process.env.NODE_ENV = '"production"'
 
 const path = require('path')
 const shelljs = require('shelljs')
@@ -44,7 +44,10 @@ const webpackConfig = require(utils.dir('config/webpack/webpack.prod.conf'))
     if (stats.compilation.errors &&
     stats.compilation.errors.length) {
       console.log(stats.toString({
-        colors: true
+        colors: true,
+        chunks: false,
+        modules: false,
+        children: false
       }))
       utils.logger('error', `Build FAILED.`)
     } else {
