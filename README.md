@@ -25,7 +25,7 @@ npm run dev
 ```
 Browser will auto open after a successful build.
 
-5. Front-end roduction build
+5. Front-end production build
 ```bash 
 npm run build
 ```
