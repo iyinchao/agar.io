@@ -8,6 +8,11 @@ import Phaser from 'phaser'
 import gameConfig from '~/config/game'
 import { Player, Food, Virus } from '@/js/characters'
 
+// import Smoother from '@/js/smoother'
+
+// const smootherX = new Smoother()
+// const smootherY = new Smoother()
+
 let vX = 0
 let vY = 0
 let lvX = 0
@@ -15,8 +20,6 @@ let lvY = 0
 
 let mX = 0
 let mY = 0
-
-let leaderBoardTimer = 0
 
 const deleteOp = (obj) => {
   delete obj.op
@@ -50,6 +53,19 @@ const States = {
         console.log('[ws] You are joined!', e)
         this.g.$info.gameId = e.gameID
         this.g.$info.userId = e.userID
+
+        // Start heart beat
+        if (this.g.$heartbeatTimer !== -1) {
+          clearInterval(this.g.$heartbeatTimer)
+        }
+        this.g.$heartbeatTimer = setInterval(() => {
+          if (!this.g.$overlay.isBrowserInactive()) {
+            this.g.$ws.emit('heartbeat', {
+              gameID: this.g.$info.gameId,
+              userID: this.g.$info.userId
+            })
+          }
+        }, 1000)
       })
 
       this.g.$ws.on('scene-setup', (e) => {
@@ -121,6 +137,14 @@ const States = {
                     props.forEach((prop) => {
                       p[prop] = diff[prop]
                     })
+                    // if (diff.id === this.g.$info.myId) {
+                    //   if (diff.x !== undefined) {
+                    //     smootherX.setValue(diff.x)
+                    //   }
+                    //   if (diff.y !== undefined) {
+                    //     smootherY.setValue(diff.y)
+                    //   }
+                    // }
                     break
                   case -1:
                     if (diff.id === this.g.$info.myId) {
@@ -164,48 +188,10 @@ const States = {
 
       this.g.$graphics = this.g.add.graphics(0, 0)
 
-      // NOTE:
-      // for (let i = 0; i < 1000; i++) {
-      //   this.game.addCharacter('food', {
-      //     id: i,
-      //     r: 10,
-      //     x: Math.random() * this.game.world.width,
-      //     y: Math.random() * this.game.world.height,
-      //     hue: parseInt(Math.random() * 360)
-      //   })
-      // }
-
-      // const p = {
-      //   id: 0,
-      //   r: 200,
-      //   hue: parseInt(Math.random() * 360),
-      //   x: 1000,
-      //   y: 500,
-      //   name: 'Charles',
-      //   cells: []
-      // }
-
-      // for (let i = 0; i < 16; i++) {
-      //   p.cells.push({
-      //     x: p.x + 500 * (Math.random() - 0.5),
-      //     y: p.y + 500 * (Math.random() - 0.5),
-      //     r: 50 + 50 * Math.random()
-      //   })
-      // }
-
-
-      // this.game.addCharacter('player', p)
-
-      // this.game.addCharacter('player', {
-      //   id: '1',
-      //   r: gameConfig.player.initialValue,
-      //   position: { x: this.game.world.width / 2, y: this.game.world.height / 2 },
-      //   name: 'charles'
-      // })
-
       Callbacks.resize.call(this, this.scale)
 
       this.g.$ws.connect()
+
       this.g.$overlay.setState('joining')
     },
     update () {
@@ -260,11 +246,9 @@ const States = {
         this.game.$graphics.lineStyle(0, 0x000000, 0)
       }
 
-
-
-
       // this.game.camera.x = camX
       // this.game.camera.y = camY
+
       this.g.$viewRect = this.g.getViewRect()
 
       this.g.cullScene()
@@ -273,7 +257,7 @@ const States = {
       })
 
       // Update leaderBoard
-      if (leaderBoardTimer > 40) {
+      if (this.g.$leaderBoardTimer > 40) {
         // Generate leader info
         const ids = Array.from(this.g.$playerList.keys())
         ids.sort((a, b) => {
@@ -310,9 +294,9 @@ const States = {
         // Update leaderboard
         this.g.$overlay.setLeaderBoard(rankData)
 
-        leaderBoardTimer = -1
+        this.g.$leaderBoardTimer = -1
       }
-      leaderBoardTimer++
+      this.g.$leaderBoardTimer++
 
       // this.game.foodList.forEach((food) => {
       //   this.game.drawFood(food)
@@ -388,6 +372,12 @@ const States = {
       }
     },
     shutdown () {
+      // Reset timers
+      clearInterval(this.g.$heartbeatTimer)
+      this.g.$heartbeatTimer = -1
+      this.g.$leaderBoardTimer = 0
+
+      // Reset websocket
       this.g.$ws.renew()
 
       // Clear up data
@@ -396,6 +386,7 @@ const States = {
       this.g.$renderList = []
       this.g.$playerList.clear()
       this.g.$foodList.clear()
+      this.g.$virusList.clear()
 
       this.g.$sprites['background'].destroy()
       this.g.$graphics.destroy()
@@ -416,13 +407,6 @@ const Callbacks = {
       this.game.parent.clientHeight)
   }, 500),
   mouseMove (e) {
-    // this.game.$ws.socket.emit('updatetarget', {
-    //   x: e.clientX,
-    //   y: e.clientY
-    // })
-    // ax = (e.clientX - (this.game.scale.width / 2)) / this.game.scale.width * 2
-    // ay = (e.clientY - (this.game.scale.height / 2)) / this.game.scale.height * 2
-
     // Get mouse position of world
     mX = e.clientX + this.game.camera.x
     mY = e.clientY + this.game.camera.y
@@ -444,19 +428,6 @@ const Callbacks = {
         nY = nY / maxRatio
       }
 
-      // if (nX > 1) {
-      //   nX = 1
-      // }
-      // if (nX < -1) {
-      //   nX = -1
-      // }
-      // if (nY > 1) {
-      //   nY = 1
-      // }
-      // if (nY < -1) {
-      //   nY = -1
-      // }
-      // console.log('send!', nX, nY)
       this.game.$ws.emit('op', {
         t: 'mv',
         x: nX,
@@ -512,9 +483,14 @@ class Game extends Phaser.Game {
     this.$massFoodList = new Map()
     this.$renderList = []
     this.$info = {}
+    this.$heartbeatTimer = -1
+    this.$leaderBoardTimer = 0
 
     this.state.add('game', States.game)
     this.state.add('idle', States.idle)
+  }
+  exit () {
+
   }
   reborn () {
     return new Promise((resolve, reject) => {
@@ -547,7 +523,7 @@ class Game extends Phaser.Game {
     // Generate polygon points
     let polygonPoints = []
 
-    // LoD edges
+    // LOD edges
     if (!edges) {
       edges = Math.round(r / 2)
       if (edges < 24) {
@@ -561,7 +537,6 @@ class Game extends Phaser.Game {
       polygonPoints.push(y + Math.sin(angle) * r)
     }
     this.$graphics.drawShape(new Pixi.Polygon(polygonPoints))
-    // this.$graphics.drawShape(new Phaser.Circle(x, y, 10 * r))
   }
   drawVirus (x, y, r) {
     let polygonPoints = []
@@ -678,6 +653,22 @@ class Game extends Phaser.Game {
           if (this.isInView(cell)) {
             this.$renderList.push(cell)
           }
+
+          // FIXME: debug
+          // console.log(cell.id, this.$info.myId)
+          // if (player.id === this.$info.myId && index === 0) {
+          //   let sx = smootherX.getValue()
+          //   let sy = smootherY.getValue()
+          //   const _this = this
+          //   this.$renderList.push({
+          //     update () {
+          //       _this.$graphics.beginFill(0xFF0000, 1)
+          //       _this.drawCircle(Math.round(sx), Math.round(sy), cell.r)
+          //       _this.$graphics.endFill()
+          //     }
+          //   })
+          // }
+          // FIXME:
         })
         if (this.isInView(player)) {
           this.$renderList.push(player)
@@ -690,7 +681,6 @@ class Game extends Phaser.Game {
         this.$renderList.push(virus)
       }
     })
-
   }
   isInView (character) {
     if (!this.$viewRect) {
