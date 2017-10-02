@@ -79,7 +79,6 @@ class Overlay {
       dom.classList.remove('hidden')
       dom.classList.add('hide')
       setTimeout(() => {
-        console.log(dom.classList.contains('hide'))
         dom.classList.remove('hide')
       }, 20)
     } else {
@@ -88,6 +87,9 @@ class Overlay {
         dom.classList.remove('hide')
       }
     }
+  }
+  isBrowserInactive () {
+    return (document.hidden) || (!document.hasFocus())
   }
   onHideTransitionEnd (e) {
     const target = e.target || e.srcElement
