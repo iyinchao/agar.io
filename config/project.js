@@ -22,8 +22,7 @@ const configCommon = {
 const config = {
   development: {
     devServer: {
-      port: 5001,
-      // host: 'http://agar-clone.io'
+      port: 5001
     },
     server: {
       host: 'http://localhost:3000',
@@ -47,18 +46,4 @@ const getConfigForEnv = function (env) {
 
 const resultConfig = getConfigForEnv(process.env.NODE_ENV)
 
-
-// module.exports = getConfigForEnv(process.env.NODE_ENV)
-
 export default resultConfig;
-
-// getConfigForEnv(process.env.NODE_ENV)
-// module.exports = exports.getConfigForEnv(process.env.NODE_ENV)
-
-// module.exports = {
-//   world: {
-//     width: 5000,
-//     height: 5000
-//   }
-// };
-
