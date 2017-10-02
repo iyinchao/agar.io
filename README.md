@@ -1,24 +1,35 @@
 # Agar.io Clone
 
-## Usage
-### Downloading the Dependencies
-After cloning the source, you need to run the following command.
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-```
+## Guide
+1. After clone, you'll need to install the Dependencies first:
+```bash
 npm i
 ```
+2. MongoDB environment setup:
+```
+// TODO
+```
 
-### Start dev-server
-Just run
+> See also: [MongoDB Windows install Guide](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/)
+
+3. Start server:  
+```bash 
+npm run server
+```
+
+4. Start front-end hot reload server to develop:
 ```bash
 npm run dev
 ```
-Browser will auto open after built.
+Browser will auto open after a successful build.
 
-### Running the Server
-```bash
-node server.js
+5. Front-end roduction build
+```bash 
+npm run build
 ```
 
-### Playing
-`http://localhost:3000`.
+## Online Demo
+
+[Digital Ocean](http://45.76.205.64/)
