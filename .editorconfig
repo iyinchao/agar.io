@@ -1,0 +1,18 @@
+# Editor config created by Charlieyin<charlieyin@tencent.com>
+# This file is used to make code style consistent across editors
+#
+
+root = true
+[*]
+charset = utf-8
+indent_size = 2
+indent_style = space
+insert_final_newline = true
+end_of_line = lf
+
+#styles
+[*.{js,scss}]
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false

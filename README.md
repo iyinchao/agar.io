@@ -1,19 +1,35 @@
-# HTML5_Gaming
+# Agar.io Clone
 
-agar.io clone
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
 
-## Installation
-#### Downloading the Dependencies
-After cloning the source, you need to run the following command.
-
+## Guide
+1. After clone, you'll need to install the Dependencies first:
+```bash
+npm i
 ```
-npm install
+2. MongoDB environment setup:
 ```
-
-#### Running the Server
-```
-node server.js
+// TODO
 ```
 
-#### Playing
-`http://localhost:3000`.
+> See also: [MongoDB Windows install Guide](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/)
+
+3. Start server:  
+```bash 
+npm run server
+```
+
+4. Start front-end hot reload server to develop:
+```bash
+npm run dev
+```
+Browser will auto open after a successful build.
+
+5. Front-end production build
+```bash 
+npm run build
+```
+
+## Online Demo
+
+[Digital Ocean](http://45.76.205.64/)

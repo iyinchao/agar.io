@@ -1,2 +1,19 @@
+# Module Folders
 bower_components/
 node_modules/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+logs/
+
+# Build outputs
+dist/
+
+# Persional Folders & auto generated
+.charlieyin/
+.vscode/
+src/server/typings/globals/node/typings.json
+src/server/typings/globals/node/index.d.ts
+src/server/typings/index.d.ts

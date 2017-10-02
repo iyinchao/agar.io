@@ -1,0 +1,108 @@
+@import 'variables';
+@import 'overlay.scss';
+@import 'spinner.scss';
+
+// @font-face {
+// 	font-family: 'GAMECUBEN';
+// 	src: url('../assets/cell.eot');
+// 	src: url('../assets/cell.eot?#iefix') format('embedded-opentype'),
+// 		url('../assets/cell.woff') format('woff'),
+// 		url('../assets/cell.ttf') format('truetype'),
+// 		url('../assets/cell.svg#GAMECUBENDualSet') format('svg');
+// 	font-weight: normal;
+// 	font-style: normal;
+// }
+
+body {
+  // Do some reset here.
+  margin: 0;
+  padding: 0;
+  font-family: Helvetica, 'Microsoft Yahei', '微软雅黑', 'Hiragino Sans GB', 'PingFang SC', Arial, sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  * {
+    box-sizing: border-box;
+  }
+}
+
+button.button {
+  border: none;
+  margin: 0;
+  background-color: grey;
+  display: block;
+  box-shadow: $boxShadow0;
+  border-radius: $borderRadiusS;
+  padding: 8px 15px;
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+  transition: all 200ms;
+  &:active {
+    box-shadow: $boxShadow1;
+  }
+  &.primary {
+    background-color: $colorPrimary;
+    color: white;
+    &:active {
+      background-color: darken($colorPrimary, 10%);
+    }
+  }
+  &.yellow {
+    background-color: $colorYellow;
+    color: black;
+    &:active {
+      background-color: darken($colorYellow, 10%);
+    }
+  }
+  &.invisible {
+    background-color: transparent;
+    color: black;
+    box-shadow: none;
+    &:active {
+      background-color: rgba(white, 0.5);
+      box-shadow: $boxShadow1;
+    }
+  }
+}
+
+.toast {
+  padding: 8px 15px;
+  font-size: 14px;
+  border-radius: $borderRadius;
+  display: inline-block;
+  position: absolute;
+  background-color: rgba(black, 0.4);
+  color: white;
+  transform: translate(-50%);
+  left: 50%;
+  top: 20px;
+  z-index: 1;
+  transition: opacity 200ms;
+  &.hide {
+    opacity: 0
+  }
+  &.hidden {
+    display: none;
+  }
+}
+
+.input-text {
+  border-radius: $borderRadiusS;
+  border: none;
+  box-shadow: $boxShadow0;
+  padding: 10px 10px;
+  font-size: 14px;
+  outline: none;
+  transition: all 200ms;
+  &:focus {
+    box-shadow: $boxShadow1;
+  }
+}
+
+#canvas-wrapper {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+}
