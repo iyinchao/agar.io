@@ -6,7 +6,7 @@ import P2 from 'p2'
 import Phaser from 'phaser'
 /* eslint-enable no-unused-vars */
 import gameConfig from '~/config/game'
-import { Player, Food, Virus } from '@/js/characters'
+import { Player, Food, Virus, MassFood } from '@/js/characters'
 
 // import Smoother from '@/js/smoother'
 
@@ -30,6 +30,9 @@ const States = {
   idle: {
     preload () {
       this.g = this.game
+    },
+    create () {
+
     }
   },
   game: {
@@ -94,6 +97,9 @@ const States = {
               case 3:
                 // Virus
                 this.g.addCharacter('virus', obj)
+                break
+              case 4:
+                break
             }
           })
         }
@@ -110,13 +116,7 @@ const States = {
                 switch (diff.op) {
                   case 1:
                     // add
-                    this.g.addCharacter('food', {
-                      id: diff.id,
-                      hue: diff.hue,
-                      r: diff.r,
-                      x: diff.x,
-                      y: diff.y
-                    })
+                    this.g.addCharacter('food', deleteOp(diff))
                     break
                   case -1:
                     // remove
@@ -125,6 +125,7 @@ const States = {
                 }
                 break
               case 1:
+                // Player
                 let p
                 switch (diff.op) {
                   case 1:
@@ -159,21 +160,42 @@ const States = {
                     break
                 }
                 break
+              case 3:
+                // Virus
+                switch (diff.op) {
+                  case 1:
+                    this.g.addCharacter('virus', deleteOp(diff))
+                    break
+                  case -1:
+                    this.g.removeCharacter('virus', diff.id)
+                    break
+                }
+                break
+              case 4:
+                // MassFood
+                console.log(diff)
+                switch (diff.op) {
+                  case 1:
+                    this.g.addCharacter('massFood', deleteOp(diff))
+                    break
+                  case -1:
+                    this.g.removeCharacter('massFood', diff.id)
+                    break
+                }
+                break
             }
           })
-          // delete
-          // ids.forEach((id) => {
-          //   this.g.removeCharacter('player', id)
-          // })
         }
       })
     },
     create () {
       this.g.scale.setResizeCallback(Callbacks.resize, this)
-      this.g.input.mouse.onMouseMove = Callbacks.mouseMove
+      // this.g.input.mouse.onMouseMove = Callbacks.mouseMove
       this.g.input.keyboard.onUpCallback = Callbacks.keyboardUp
       this.g.input.keyboard.onDownCallback = Callbacks.keyboardDown
       this.g.input.keyboard.onPressCallback = Callbacks.keyboardPress
+      // this.g.input.touch.onTouchMove = Callbacks.touchMove
+      this.g.input.addMoveCallback(Callbacks.move, this)
 
       this.g.$key = {}
       this.g.$key.up = this.g.input.keyboard.addKey(Phaser.Keyboard.UP)
@@ -188,6 +210,8 @@ const States = {
 
       this.g.$graphics = this.g.add.graphics(0, 0)
 
+      this.g.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
+      this.g.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
       Callbacks.resize.call(this, this.scale)
 
       this.g.$ws.connect()
@@ -234,8 +258,10 @@ const States = {
           this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
 
-        this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
-        this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
+
+
+        this.g.camera.x = (playerBound.right + playerBound.left - this.g.width) / 2
+        this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.height) / 2
         // this.g.camera.scale.setTo(2, 2)
       }
 
@@ -387,6 +413,7 @@ const States = {
       this.g.$playerList.clear()
       this.g.$foodList.clear()
       this.g.$virusList.clear()
+      this.g.$massFoodList.clear()
 
       this.g.$sprites['background'].destroy()
       this.g.$graphics.destroy()
@@ -402,14 +429,47 @@ const States = {
 
 const Callbacks = {
   resize: throttle(function onResize (scale) {
+    const deviceRatio = window.devicePixelRatio || 1
     scale.setGameSize(
-      this.game.parent.clientWidth,
-      this.game.parent.clientHeight)
+      this.game.parent.clientWidth * deviceRatio,
+      this.game.parent.clientHeight * deviceRatio)
+    // Add this to fix input scale jetter
+    this.game.input.scale = new Phaser.Point(deviceRatio, deviceRatio)
   }, 500),
-  mouseMove (e) {
-    // Get mouse position of world
-    mX = e.clientX + this.game.camera.x
-    mY = e.clientY + this.game.camera.y
+  keyboardPress (e, f) {
+
+  },
+  keyboardDown (e) {
+    // console.log('down', e)
+    switch (e.code) {
+      case 'Space':
+        break
+      case 'KeyW':
+        break
+    }
+  },
+  keyboardUp (e) {
+    switch (e.code) {
+      case 'Space':
+        this.game.$ws.emit('op', {
+          t: 'space',
+          userID: this.game.$info.userId,
+          gameID: this.game.$info.gameId
+        })
+        break
+      case 'KeyW':
+        this.game.$ws.emit('op', {
+          t: 'w',
+          userID: this.game.$info.userId,
+          gameID: this.game.$info.gameId
+        })
+        break
+    }
+  },
+  move (pointer, x, y, fromClick) {
+    // Get position of world
+    mX = x + this.game.camera.x
+    mY = y + this.game.camera.y
 
     // Get current player
     const p = this.game.getCharacter('player', this.game.$info.myId)
@@ -435,30 +495,6 @@ const Callbacks = {
         userID: this.game.$info.userId,
         gameID: this.game.$info.gameId
       })
-    }
-  },
-  keyboardPress (e, f) {
-
-  },
-  keyboardDown (e) {
-    // console.log('down', e)
-  },
-  keyboardUp (e) {
-    switch (e.code) {
-      case 'Space':
-        this.game.$ws.emit('op', {
-          t: 'space',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
-        break
-      case 'KeyW':
-        this.game.$ws.emit('op', {
-          t: 'w',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
-        break
     }
   }
 }
@@ -488,6 +524,8 @@ class Game extends Phaser.Game {
 
     this.state.add('game', States.game)
     this.state.add('idle', States.idle)
+
+    this.state.start('idle')
   }
   exit () {
     return new Promise((resolve, reject) => {
@@ -585,6 +623,7 @@ class Game extends Phaser.Game {
       case 'player':
       case 'virus':
       case 'food':
+      case 'massFood':
         if (type === 'player') {
           list = this.$playerList
           Obj = Player
@@ -594,6 +633,9 @@ class Game extends Phaser.Game {
         } else if (type === 'food') {
           list = this.$foodList
           Obj = Food
+        } else if (type === 'massFood') {
+          list = this.$massFoodList
+          Obj = MassFood
         }
         if (list.has(option.id)) {
           console.warn('@addCharacter:', `ID ${option.id} has already exists for ${type}`)
@@ -621,6 +663,9 @@ class Game extends Phaser.Game {
       case 'virus':
         list = this.$virusList
         break
+      case 'massFood':
+        list = this.$massFoodList
+        break
       default:
         console.warn('@getCharacter', `Invalid character tyle ${type}`)
     }
@@ -641,6 +686,9 @@ class Game extends Phaser.Game {
         break
       case 'virus':
         list = this.$virusList
+        break
+      case 'massFood':
+        list = this.$massFoodList
         break
       default:
         console.warn('@removeCharacter', `Invalid character tyle ${type}`)
@@ -698,6 +746,40 @@ class Game extends Phaser.Game {
         this.$renderList.push(virus)
       }
     })
+
+    this.$massFoodList.forEach((massFood) => {
+      if (this.isInView(massFood)) {
+        this.$renderList.push(massFood)
+      }
+    })
+  }
+  isFullScreen () {
+    const fse = document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+
+    return !!fse
+  }
+  enterFullScreen () {
+    if (!this.isFullScreen()) {
+      const d = document.documentElement
+      const requestFS = d.requestFullscreen ||
+        d.webkitRequestFullscreen ||
+        d.mozRequestFullScreen ||
+        d.msRequestFullscreen
+      requestFS.call(d)
+    }
+  }
+  exitFullScreen () {
+    if (this.isFullScreen()) {
+      const d = document
+      const exitFS = d.exitFullscreen ||
+        d.webkitExitFullscreen ||
+        d.mozCancelFullScreen ||
+        d.msExitFullscreen
+      exitFS.call(d)
+    }
   }
   isInView (character) {
     if (!this.$viewRect) {

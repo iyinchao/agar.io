@@ -29,7 +29,7 @@ export class Player extends Character {
       16)
 
     this.text = this.game.add.text(0, 0, this.name, {
-      font: 'bold 32px Arial',
+      font: 'bold 32px cell',
       fill: '#FFF',
       stroke: '#000',
       strokeThickness: 4
@@ -84,9 +84,14 @@ export class Player extends Character {
 
     this.text.x = this.cells[this._largestCellIndex].x
     this.text.y = this.cells[this._largestCellIndex].y
-    this.text.fontSize = this.cells[this._largestCellIndex].r > 60
-      ? 32
-      : this.cells[this._largestCellIndex].r / 2
+
+    let fontSize = this.cells[this._largestCellIndex].r / 2
+    if (fontSize > 36) {
+      fontSize = 36
+    } else if (fontSize < 12) {
+      fontSize = 12
+    }
+    this.text.fontSize = fontSize
 
       // let largest = 0 // Largest cell index
       // let largestR = 0
@@ -153,5 +158,13 @@ export class Virus extends Character {
     this.game.drawVirus(this.x, this.y, this.r, 6)
     this.game.$graphics.endFill()
     this.game.$graphics.lineWidth = 0
+  }
+}
+
+export class MassFood extends Character {
+  constructor (options) {
+    super(options)
+  }
+  update () {
   }
 }

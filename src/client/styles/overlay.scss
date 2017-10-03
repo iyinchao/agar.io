@@ -10,6 +10,7 @@
   pointer-events: none;
   perspective: 2000px;
   #leader-board {
+    opacity: 0.8;
     min-width: 150px;
     max-width: 250px;
     background-color: rgba(black ,0.3);
@@ -166,6 +167,46 @@
       }
     }
   }
+  #controls {
+    .control-group {
+      margin: 10px;
+      padding: 3px;
+      background-color: rgba(black, 0.4);
+      box-shadow: $boxShadow1;
+      border-radius: 100px;
+      .control {
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 20px;
+        color: white;
+        text-shadow: $textShadow1;
+        pointer-events: auto;
+        padding: 10px;
+        outline: none;
+        cursor: pointer;
+        border-radius: 100%;
+        transition: all 150ms;
+        &:not(:last-child) {
+          margin-right: 10px;
+        }
+        &:active {
+          background-color: white;
+          color: black;
+        }
+      }
+    }
+    .control-group[data-ref=controlGroupOp] {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+    }
+    .control-group[data-ref=controlGroupMenu] {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+    }
+  }
   #mask {
     position: absolute;
     background: rgba(black, 0.5);
@@ -213,7 +254,7 @@
         border-bottom: 1px solid #ad0000;
       }
       &:hover {
-        transform: rotate(20deg) scale(1.2) translate(-3%, -20%);
+        transform: rotate(20deg) scale(1.15) translate(-3%, -20%);
       }
       &:active {
         cursor: grabbing;

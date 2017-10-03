@@ -11,6 +11,8 @@ const nickRegex = /^.{1,}$/
 const passwordRegex = /^.{6,}$/
 /* eslint-enable no-useless-escape */
 
+let isFirstEnterFullScreen = true
+
 class Overlay {
   constructor (option) {
     this.game = option.game
@@ -65,6 +67,10 @@ class Overlay {
     this.refs.btChangeRole.addEventListener('click', (e) => {
       this.onBtChangeRoleClick(e)
     })
+    // This is to prevent focus change.
+    this.refs.controls.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+    }, true)
 
     this.setState('userPanel')
 
@@ -146,6 +152,7 @@ class Overlay {
           this.refs.regPasswordRep.value = ''
           this.refs.loginEmail.value = ''
           this.refs.loginPassword.value = ''
+          this.refs.gameNick.value = ''
         }
         this.show(this.refs.mask)
         this.show(this.refs.panelUser)
@@ -232,7 +239,7 @@ class Overlay {
       this.setAvatar(this.refs.gamePanelAvatar, this.userInfo.avatarURL)
     } else {
       this.refs.gameNick.disabled = false
-      this.refs.gameNick.value = ''
+      // this.refs.gameNick.value = ''
       this.show(this.refs.gameTitle)
       this.hide(this.refs.gamePanelAvatar)
     }
@@ -513,6 +520,12 @@ class Overlay {
     if (this.refs.gameNick.value) {
       this.game.$info.myName = this.refs.gameNick.value
       this.game.state.start('game')
+      if (isFirstEnterFullScreen) {
+        if (!this.game.device.desktop) {
+          this.game.enterFullScreen()
+          this.isFirstEnterFullScreen = false
+        }
+      }
     } else {
       this.showToast('球球需要一个昵称')
       this.refs.gameNick.focus()
