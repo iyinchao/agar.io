@@ -24,24 +24,27 @@ module.exports = merge(webpackBaseConf, {
         use: [
           'style-loader',
           {
+            loader: 'css-loader',
+            options: {
+              sourceMap: true,
+              importLoaders: 2,
+              minimize: false
+            }
+          },
+          {
             loader: 'postcss-loader',
             options: {
               sourceMap: true,
               plugins: [
-                // NOTE: Order matters!
+                // NOTE: Order matters, must place before cssnano
                 require('autoprefixer')({
                   browsers: config.client.browserList
                 }),
-                require('cssnano')({
-                  // core: false,  // NOTE: Add this to disable default features
-                }),
+                // Removed cssnano because it is bundled in css-loader
+                // require('cssnano')({
+                //   //core: false,  // NOTE: Add this to disable default features
+                // }),
               ]
-            }
-          },
-          {
-            loader: 'resolve-url-loader',
-            options: {
-              keepQuery: true
             }
           },
           {
