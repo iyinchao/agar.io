@@ -31,10 +31,10 @@ module.exports = merge(webpackBaseConf, {
               options: {
                 sourceMap: true,
                 plugins: [
-                  require('cssnano')(),
                   require('autoprefixer')({
                     browsers: [config.client.browserList]
-                  })
+                  }),
+                  require('cssnano')()
                 ]
               },
             },

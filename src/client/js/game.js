@@ -490,7 +490,24 @@ class Game extends Phaser.Game {
     this.state.add('idle', States.idle)
   }
   exit () {
+    return new Promise((resolve, reject) => {
+      if (this.state.current === 'game') {
+        // Exit game
+        this.$ws.on('exited', () => {
+          resolve()
+        })
 
+        this.$ws.emit('exit', {
+          userID: this.$info.myId,
+          gameID: this.$info.gameId
+        })
+      } else {
+        reject(new Error('not-in-game'))
+      }
+    }).then(() => {
+      this.state.start('idle')
+      this.$overlay.setState('gamePanel')
+    })
   }
   reborn () {
     return new Promise((resolve, reject) => {

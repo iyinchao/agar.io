@@ -20,14 +20,20 @@
     </div>
   </div>
   <div id="game-panel" class="panel" data-ref="panelGame">
-    <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
-    <input type="text" class="input-text row" data-ref="textNick" placeholder="输入昵称">
-    <button class="button primary row" data-ref="btStartGame">进入游戏</button>
-    <button class="button invisible row" data-ref="btChangeRole">换个身份</button>
+    <div class="avatar" data-ref="gamePanelAvatar">
+      <div class="placeholder"></div>
+      <div class="content"><div class="image"></div></div>
+    </div>
+    <div class="title" data-ref="gameTitle">Agar.io<div class="title-badge">Clone!</div></div>
+    <div class="content">
+      <input type="text" class="input-text row" data-ref="gameNick" placeholder="输入昵称">
+      <button class="button primary row" data-ref="btStartGame">进入游戏</button>
+      <button class="button ghost row" data-ref="btChangeRole">换个身份</button>
+    </div>
   </div>
   <div id="user-panel" class="panel hidden" data-ref="panelUser">
     <div class="title">Agar.io<div class="title-badge">Clone!</div></div>
-    <div data-ref="panelUserContent">
+    <div class="content" data-ref="panelUserContent">
       <div data-ref="loginSwitcher" id="login-switcher">
         <button class="switch" data-ref="switcherLogin">登录</button>
         <button class="switch" data-ref="switcherReg">注册</button>
@@ -49,8 +55,7 @@
         <button class="button yellow row" data-ref="btPlayAsGuest">我是游客，我就玩玩</button>
       </div>
     </div>
-    
-    <div data-ref="panelUserLoading">
+    <div data-ref="panelUserLoading" class="content">
         <div class="spinner"></div>
         <div data-ref="panelUserLoadingText"></div>
     </div>

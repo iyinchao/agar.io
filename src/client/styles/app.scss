@@ -28,7 +28,7 @@ body {
 button.button {
   border: none;
   margin: 0;
-  background-color: grey;
+  background-color: $colorGray;
   display: block;
   box-shadow: $boxShadow0;
   border-radius: $borderRadiusS;
@@ -62,6 +62,9 @@ button.button {
       background-color: rgba(white, 0.5);
       box-shadow: $boxShadow1;
     }
+  }
+  &.ghost {
+    background-color: transparent;
   }
 }
 

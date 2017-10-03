@@ -1,8 +1,9 @@
 import Promise from 'bluebird'
+import md5 from 'crypto-js/md5'
 
 import template from '@/html/overlay.html'
-import utils from '@/js/utils'
 import projectConfig from '~/config/project'
+import storage from '@/js/storage'
 
 /* eslint-disable no-useless-escape */
 const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
@@ -19,8 +20,6 @@ class Overlay {
     //
     this.dom = _complierDom.querySelector('#overlay')
     document.body.appendChild(this.dom)
-    // Init components
-    this.dom.querySelector('#user-panel')
 
     // Gather refs
     this.refs = {}
@@ -33,7 +32,8 @@ class Overlay {
     })
 
     this.toastTimeout = 0
-    this.xhrList = []
+    this.xhrList = new Map()
+    this.userInfo = null // null represents not logged in status.
 
     this.init()
   }
@@ -50,6 +50,9 @@ class Overlay {
     this.refs.btDiedReborn.addEventListener('click', (e) => {
       this.onBtDiedRebornClick(e)
     })
+    this.refs.btDiedLeave.addEventListener('click', (e) => {
+      this.onBtDiedLeaveClick(e)
+    })
     this.refs.btPlayAsGuest.addEventListener('click', (e) => {
       this.onBtPlayAsGuest(e)
     })
@@ -63,8 +66,10 @@ class Overlay {
       this.onBtChangeRoleClick(e)
     })
 
-    // Check session storage
     this.setState('userPanel')
+
+    // Pickup localstorage
+    this.relogin()
   }
   hide (dom) {
     if (!dom.classList.contains('hidden')) {
@@ -115,7 +120,7 @@ class Overlay {
     this.refs.toast.innerText = content
 
     const op = Object.assign({}, {
-      timeout: 1000
+      timeout: 1200
     }, option)
 
     this.show(this.refs.toast)
@@ -128,15 +133,31 @@ class Overlay {
     this.hide(this.refs.toast)
   }
   setState (state, option) {
+    const op = Object.assign(
+      {},
+      option)
+
     switch (state) {
       case 'userPanel':
+        if (op.clearData) {
+          this.refs.regEmail.value = ''
+          this.refs.regNick.value = ''
+          this.refs.regPassword.value = ''
+          this.refs.regPasswordRep.value = ''
+          this.refs.loginEmail.value = ''
+          this.refs.loginPassword.value = ''
+        }
         this.show(this.refs.mask)
         this.show(this.refs.panelUser)
         this.hide(this.refs.panelGame)
         this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
         this.hide(this.refs.leaderBoard)
-        this.setUserPanelMode('login')
+        if (op.mode === 'register') {
+          this.setUserPanelMode('register')
+        } else {
+          this.setUserPanelMode('login')
+        }
         break
       case 'gamePanel':
         this.show(this.refs.mask)
@@ -145,6 +166,7 @@ class Overlay {
         this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
         this.hide(this.refs.leaderBoard)
+        this.setGamePanelState()
         break
       case 'died':
         this.show(this.refs.mask)
@@ -201,6 +223,28 @@ class Overlay {
         break
     }
   }
+  setGamePanelState () {
+    if (this.userInfo) {
+      this.refs.gameNick.disabled = true
+      this.refs.gameNick.value = this.userInfo.nickname
+      this.show(this.refs.gameTitle)
+      this.show(this.refs.gamePanelAvatar)
+      this.setAvatar(this.refs.gamePanelAvatar, this.userInfo.avatarURL)
+    } else {
+      this.refs.gameNick.disabled = false
+      this.refs.gameNick.value = ''
+      this.show(this.refs.gameTitle)
+      this.hide(this.refs.gamePanelAvatar)
+    }
+  }
+  setAvatar (dom, url) {
+    const imageDom = dom.querySelector('.image')
+    if (imageDom) {
+      imageDom.style.backgroundImage = `url(${url})`
+    } else {
+      console.warn('@setAvatar:', 'Can not find ".image" dom to set avatar.')
+    }
+  }
   setLoadingText (text) {
     this.refs.infoLoadingText.innerText = text
   }
@@ -224,7 +268,7 @@ class Overlay {
   }
   login (email, password) {
     const xhr = new XMLHttpRequest()
-    this.xhrList['login'] = xhr
+    this.xhrList.set('login', xhr)
     return new Promise((resolve, reject) => {
       xhr.addEventListener('readystatechange', (e) => {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -251,12 +295,12 @@ class Overlay {
         true)
       xhr.send()
     }).finally(() => {
-      this.xhrList['login'] = null
+      this.xhrList.delete('login')
     })
   }
   register (email, nick, password) {
     const xhr = new XMLHttpRequest()
-    this.xhrList['register'] = xhr
+    this.xhrList.set('register', xhr)
     return new Promise((resolve, reject) => {
       xhr.addEventListener('readystatechange', (e) => {
         if (xhr.readyState === 4 && xhr.status === 200) {
@@ -283,11 +327,64 @@ class Overlay {
         true)
       xhr.send()
     }).finally(() => {
-      this.xhrList['register'] = null
+      this.xhrList.delete('register')
     })
+  }
+  relogin () {
+    this.setUserPanelMode('loading', { loadingText: '请稍候...' })
+
+    const info = storage.get('userInfo')
+    if (!info) {
+      this.setUserPanelMode('login')
+      return
+    }
+
+    const email = info.email
+    const password = info.password
+
+    this.login(email, password).then((res) => {
+      this.showToast(`${res.nick_name}, 欢迎回来~`, { timeout: 2000 })
+      // Store user info
+      this.userInfo = {
+        nickname: res.nick_name,
+        avatarURL: this.getAvatarURL(email),
+        email,
+        password
+      }
+
+      setTimeout(() => {
+        this.setState('gamePanel')
+      }, 500)
+    }).catch((e) => {
+      this.setUserPanelMode('login')
+      switch (e.message) {
+        case 'login':
+          this.showToast('登录失败，用户名或密码错误')
+          break
+        case 'network':
+          this.showToast('网络错误')
+          break
+      }
+    })
+  }
+  getAvatarURL (email) {
+    let e = email
+    if (typeof email !== 'string') {
+      e = ''
+    }
+    return `https://www.gravatar.com/avatar/${md5(e.trim().toLowerCase())}?d=identicon&s=64`
   }
   onBtDiedRebornClick (e) {
     this.game.reborn()
+      .then(() => {
+
+      })
+      .catch((e) => {
+        console.log(e)
+      })
+  }
+  onBtDiedLeaveClick (e) {
+    this.game.exit()
       .then(() => {
 
       })
@@ -314,18 +411,23 @@ class Overlay {
     // Passed tests
     this.setUserPanelMode('loading', { loadingText: '正在登录...' })
 
-    if (this.xhrList['login']) {
+    if (this.xhrList.has('login')) {
       return
     }
 
     this.login(email, password).then((res) => {
-      console.log(res)
+      this.showToast(`${res.nick_name}, 欢迎回来~`, { timeout: 2000 })
+      // Store user info
+      this.userInfo = {
+        nickname: res.nick_name,
+        avatarURL: this.getAvatarURL(email),
+        email,
+        password
+      }
 
-      setTimeout(() => {
-        this.showToast(`${res.nick_name}, 欢迎回来`)
-        // FIXME: Mocked
-        this.setState('gamePanel')
-      }, 1000)
+      storage.set('userInfo', this.userInfo, { expire: 3 * 24 * 3600 * 1000 })
+
+      this.setState('gamePanel')
     }).catch((e) => {
       console.log(e.message)
       this.setUserPanelMode('login')
@@ -372,7 +474,7 @@ class Overlay {
     //
     this.setUserPanelMode('loading', { loadingText: '正在注册...' })
 
-    if (this.xhrList['register']) {
+    if (this.xhrList.has('register')) {
       return
     }
 
@@ -384,7 +486,6 @@ class Overlay {
         // FIXME: Mocked
         this.setUserPanelMode('login')
       }, 1000)
-
     }).catch((e) => {
       console.log(e.message)
       this.setUserPanelMode('register')
@@ -399,16 +500,22 @@ class Overlay {
     })
   }
   onBtChangeRoleClick (e) {
-    // TODO: Logout if needed
-    this.setState('userPanel')
+    // Clear user info
+    if (this.userInfo) {
+      this.showToast('你已登出~')
+    }
+    this.userInfo = null
+    storage.delete('userInfo')
+
+    this.setState('userPanel', { clearData: true })
   }
   onBtStartGameClick (e) {
-    if (this.refs.textNick.value) {
-      this.game.$info.myName = this.refs.textNick.value
+    if (this.refs.gameNick.value) {
+      this.game.$info.myName = this.refs.gameNick.value
       this.game.state.start('game')
     } else {
       this.showToast('球球需要一个昵称')
-      this.refs.textNick.focus()
+      this.refs.gameNick.focus()
     }
   }
   onBtPlayAsGuest (e) {

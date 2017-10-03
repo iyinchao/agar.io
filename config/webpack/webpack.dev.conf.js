@@ -28,12 +28,13 @@ module.exports = merge(webpackBaseConf, {
             options: {
               sourceMap: true,
               plugins: [
-                require('cssnano')({
-                  // core: false,  // Disable default features
-                }),
+                // NOTE: Order matters!
                 require('autoprefixer')({
                   browsers: config.client.browserList
-                })
+                }),
+                require('cssnano')({
+                  // core: false,  // NOTE: Add this to disable default features
+                }),
               ]
             }
           },
@@ -72,4 +73,3 @@ module.exports = merge(webpackBaseConf, {
     new FriendlyErrorsPlugin()
   ]
 })
-
