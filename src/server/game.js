@@ -604,4 +604,4 @@ function TestFoo()
     console.log(Update(0));
 }
 
-TestFoo();
+//TestFoo();
