@@ -35,6 +35,7 @@ function PlayerGroup(_x, _y, _name, _player)
         players: [_player],
         color: util.randomInRange(1, 359),
         name: _name,
+        kill: 0,
         scene: {
             leftUp: [0, 0],
             rightDown: [0, 0],
@@ -47,7 +48,18 @@ function Exit(_gameId, playerId)
     var game = gameRefs[_gameId];
     if (!game) return;
 
+    var pg = game.moveables[playerId];
+    if (!pg) return;
+
+    var ret = {
+        weight: 0,  
+        kill: pg.kill,
+    };
+    for (var i = 0; i < pg.players.length; ++i) {
+        ret.weight += pg.players[i].weight;
+    }
     delete game.moveables[playerId];
+    return ret;
 }
 
 function Game(_id)
@@ -379,9 +391,15 @@ function CollideWithObject(player, obj, game, nrPlayers)
 
 function CollidePlayerGroup(player, start, playerGroup)
 {
+    var eat = 0;
     for (var i = 0; i < playerGroup.players.length; ++i) {
+        var prev = playerGroup.players[i].weight;
         CollideWithObject(player, playerGroup.players[i]);
+        if (prev != playerGroup.players[i].weight) {
+            eat++;
+        }
     }
+    return eat;
 }
 
 function CollideOtherPlayers(player, pgid, game)
@@ -407,7 +425,7 @@ function DetectCollision(game)
             CollidePlayerGroup(pg.players[i], i + 1, pg);
 
             // collide with other players
-            CollideOtherPlayers(pg.players[i], gid, game);
+            pg.kill += CollideOtherPlayers(pg.players[i], gid, game);
             
             // collide with food, virus and mass
             for (var objID in game.others) {
