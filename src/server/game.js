@@ -506,7 +506,10 @@ function ExtractPlayerScene(game)
     }
     for (var id in game.others) {
         var obj = game.others[id];
-        objs.push(new NewSceneObject(obj));
+        var nso = NewSceneObject(obj);
+        if (obj.type == OBJECT_TYPE.VIRUS)
+            delete nso.hue;
+        objs.push(nso);
     }
     return objs;
 }
