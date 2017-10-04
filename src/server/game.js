@@ -281,7 +281,10 @@ function DoMultiSplit(player)
         UpdateAttr(newOne);
         newOne.x = (d * virusSplitDir[i][0] + player.x);
         newOne.y = (d * virusSplitDir[i][1] + player.y);
-        if (CheckBound(newOne)) continue;
+        if (CheckBound(newOne)) {
+            player.weight += pw;
+            continue;
+        }
         ret.push(newOne);
     }
     player.weight = (player.weight / virusSplitDir.length);
@@ -306,8 +309,10 @@ function DoBinSplit(player, cosx, sinx)
     var splitDistance = copy.radius * cfg.splitDistanceToRadius;
     copy.x = (splitDistance * cosx + player.x);
     copy.y = (splitDistance * sinx + player.y);
-    if (CheckBound(copy))
+    if (CheckBound(copy)) {
+        player.weight += copy.weight;
         return null;
+    }
     return copy;
 }
 
@@ -581,4 +586,4 @@ function TestFoo()
     console.log(Update(0));
 }
 
-//TestFoo();
+TestFoo();
