@@ -190,7 +190,7 @@
         &:not(:last-child) {
           margin-right: 10px;
         }
-        &:active {
+        &:active, &.active {
           background-color: white;
           color: black;
         }
@@ -321,6 +321,10 @@
         border-radius: 100%;
         box-shadow: $boxShadow0;
         overflow: hidden;
+        background-image: url(../assets/img/default-avatar.svg);
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: cover;
         .image {
           width: 64px;
           height: 64px;

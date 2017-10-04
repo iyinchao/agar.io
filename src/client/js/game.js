@@ -443,26 +443,22 @@ const Callbacks = {
     // console.log('down', e)
     switch (e.code) {
       case 'Space':
+        this.game.$overlay.refs.controlSplit.classList.add('active')
         break
       case 'KeyW':
+        this.game.$overlay.refs.controlShrink.classList.add('active')
         break
     }
   },
   keyboardUp (e) {
     switch (e.code) {
       case 'Space':
-        this.game.$ws.emit('op', {
-          t: 'space',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
+        this.game.splitPlayer()
+        this.game.$overlay.refs.controlSplit.classList.remove('active')
         break
       case 'KeyW':
-        this.game.$ws.emit('op', {
-          t: 'w',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
+        this.game.shrinkPlayer()
+        this.game.$overlay.refs.controlShrink.classList.remove('active')
         break
     }
   },
@@ -804,6 +800,26 @@ class Game extends Phaser.Game {
       right: (this.camera.x + this.camera.width) / this.camera.scale.x
     }
     return rect
+  }
+  splitPlayer () {
+    const my = this.getCharacter('player', this.$info.myId)
+    if (my) {
+      this.$ws.emit('op', {
+        t: 'space',
+        userID: this.$info.userId,
+        gameID: this.$info.gameId
+      })
+    }
+  }
+  shrinkPlayer () {
+    const my = this.getCharacter('player', this.$info.myId)
+    if (my) {
+      this.$ws.emit('op', {
+        t: 'w',
+        userID: this.$info.userId,
+        gameID: this.$info.gameId
+      })
+    }
   }
 }
 

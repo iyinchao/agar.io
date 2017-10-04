@@ -67,6 +67,12 @@ class Overlay {
     this.refs.btChangeRole.addEventListener('click', (e) => {
       this.onBtChangeRoleClick(e)
     })
+    this.refs.controlSplit.addEventListener('click', () => {
+      this.onControlSplitClick()
+    })
+    this.refs.controlShrink.addEventListener('click', () => {
+      this.onControlShrinkClick()
+    })
     // This is to prevent focus change.
     this.refs.controls.addEventListener('mousedown', (e) => {
       e.preventDefault()
@@ -533,6 +539,12 @@ class Overlay {
   }
   onBtPlayAsGuest (e) {
     this.setState('gamePanel')
+  }
+  onControlSplitClick () {
+    this.game.splitPlayer()
+  }
+  onControlShrinkClick () {
+    this.game.shrinkPlayer()
   }
 }
 
