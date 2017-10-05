@@ -21,6 +21,8 @@ let lvY = 0
 let mX = 0
 let mY = 0
 
+let preloadIntervalId = -1
+
 const deleteOp = (obj) => {
   delete obj.op
   return obj
@@ -40,8 +42,6 @@ const States = {
       this.g = this.game
 
       this.g.stage.disableVisibilityChange = true
-
-      this.g.load.image('background', require('@/assets/img/tile.png'))
 
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
@@ -187,29 +187,51 @@ const States = {
           })
         }
       })
+
+      // Preload assets
+      if (!this.g.$isAssetsPreloaded) {
+        this.g.$overlay.setState('preloading')
+
+        this.g.load.onLoadStart.add(Callbacks.loadStart, this)
+        this.g.load.onLoadComplete.add(Callbacks.loadComplete, this)
+
+        this.g.load.image('background', require('@/assets/img/tile.png'))
+        this.g.load.audio('bg', require('@/assets/audio/bg.mp3'))
+      }
     },
     create () {
-      this.g.scale.setResizeCallback(Callbacks.resize, this)
-      // this.g.input.mouse.onMouseMove = Callbacks.mouseMove
+      // Init inputs
       this.g.input.keyboard.onUpCallback = Callbacks.keyboardUp
       this.g.input.keyboard.onDownCallback = Callbacks.keyboardDown
       this.g.input.keyboard.onPressCallback = Callbacks.keyboardPress
-      // this.g.input.touch.onTouchMove = Callbacks.touchMove
       this.g.input.addMoveCallback(Callbacks.move, this)
-
       this.g.$key = {}
       this.g.$key.up = this.g.input.keyboard.addKey(Phaser.Keyboard.UP)
       this.g.$key.down = this.g.input.keyboard.addKey(Phaser.Keyboard.DOWN)
       this.g.$key.left = this.g.input.keyboard.addKey(Phaser.Keyboard.LEFT)
       this.g.$key.right = this.g.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
 
-      this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
+      // Reset sprites
+      this.g.$sprites = {}
       this.g.$sprites['background'] = this.add.tileSprite(
         0, 0, gameConfig.world.width, gameConfig.world.height,
         'background')
 
+      // FIXME: sound demo
+      this.g.$sounds = {}
+      this.g.$sounds['bg'] = this.g.add.audio('bg')
+      this.g.$sounds['bg'].loop = true
+      const soundArray = Object.keys(this.g.$sounds).map((key) => {
+        return this.g.$sounds[key]
+      })
+      this.g.sound.setDecodedCallback(soundArray, function () {
+        this.g.$sounds['bg'].play()
+      }, this)
+
+      this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
       this.g.$graphics = this.g.add.graphics(0, 0)
 
+      this.g.scale.setResizeCallback(Callbacks.resize, this)
       this.g.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
       this.g.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
       Callbacks.resize.call(this, this.scale)
@@ -257,8 +279,6 @@ const States = {
           this.g.$graphics.lineTo(mX, mY)
           this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
-
-
 
         this.g.camera.x = (playerBound.right + playerBound.left - this.g.width) / 2
         this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.height) / 2
@@ -415,7 +435,15 @@ const States = {
       this.g.$virusList.clear()
       this.g.$massFoodList.clear()
 
-      this.g.$sprites['background'].destroy()
+      Object.keys(this.g.$sprites).forEach((key) => {
+        this.g.$sprites[key].destroy()
+      })
+      this.g.$sprites = null
+      Object.keys(this.g.$sounds).forEach((key) => {
+        this.g.$sounds[key].destroy()
+      })
+      this.g.$sounds = null
+
       this.g.$graphics.destroy()
 
       this.g.input.keyboard.removeKey(Phaser.Keyboard.UP)
@@ -428,6 +456,17 @@ const States = {
 }
 
 const Callbacks = {
+  loadStart () {
+    preloadIntervalId = setInterval(() => {
+      this.game.$overlay.setLoadingText(`稍等，正在载入资源...${this.game.load.progress}%`)
+    }, 100)
+  },
+  loadComplete () {
+    this.g.$isAssetsPreloaded = true
+    clearInterval(preloadIntervalId)
+    this.game.load.onLoadStart.remove(Callbacks.loadStart, this)
+    this.game.load.onLoadComplete.remove(Callbacks.loadComplete, this)
+  },
   resize: throttle(function onResize (scale) {
     const deviceRatio = window.devicePixelRatio || 1
     scale.setGameSize(
@@ -508,7 +547,10 @@ class Game extends Phaser.Game {
     this.$ws = options.ws
 
     this.$viewRect = null
-    this.$sprites = {}
+    this.$sprites = null
+    this.$sounds = null
+    this.$isAssetsPreloaded = false
+    // this.$audioDecoded = false
     this.$playerList = new Map()
     this.$foodList = new Map()
     this.$virusList = new Map()

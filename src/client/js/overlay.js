@@ -185,6 +185,13 @@ class Overlay {
         this.show(this.refs.mask)
         this.show(this.refs.infoDied)
         break
+      case 'preloading':
+        this.show(this.refs.mask)
+        this.setLoadingText('正在载入资源...')
+        this.show(this.refs.infoLoading)
+        this.hide(this.refs.panelGame)
+        this.hide(this.refs.infoDied)
+        break
       case 'joining':
         this.show(this.refs.mask)
         this.setLoadingText('系好安全带，正在进入世界...')
