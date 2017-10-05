@@ -248,7 +248,7 @@ const States = {
           playerBound.right = Math.max(playerBound.right, right)
           playerBound.bottom = Math.max(playerBound.bottom, bottom)
         })
-        if (process.env.NODE_ENV === 'development') {
+        if (this.g.$debug) {
           this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
           this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
 
@@ -265,7 +265,7 @@ const States = {
         // this.g.camera.scale.setTo(2, 2)
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (this.g.$debug) {
         const rect = this.game.getViewRect()
         this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
         this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
@@ -391,7 +391,7 @@ const States = {
       }
     },
     render () {
-      if (process.env.NODE_ENV === 'development') {
+      if (this.g.$debug) {
         this.game.debug.cameraInfo(this.game.camera, 32, 64)
         this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
@@ -517,6 +517,7 @@ class Game extends Phaser.Game {
     this.$info = {}
     this.$heartbeatTimer = -1
     this.$leaderBoardTimer = 0
+    this.$debug = (process.env.NODE_ENV === 'development')
 
     this.state.add('game', States.game)
     this.state.add('idle', States.idle)

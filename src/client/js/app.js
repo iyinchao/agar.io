@@ -21,11 +21,20 @@ window.PhaserGlobal = {}
 
 if (process.env.NODE_ENV === 'production') {
   window.PhaserGlobal.hideBanner = true
+
+  // Added private hash to enable development drawing
+  window.addEventListener('hashchange', (e) => {
+    if (window.location.hash &&
+      window.location.hash.substring(1) === 'debug') {
+      game.$debug = true
+    } else {
+      game.$debug = false
+    }
+  })
 } else if (process.env.NODE_ENV === 'development') {
   window.PhaserGlobal.hideBanner = false
-}
 
-if (process.env.NODE_ENV === 'development') {
+  // Inject global variables for debugging
   window.$game = game
   window.$overlay = overlay
 }

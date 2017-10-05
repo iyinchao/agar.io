@@ -1,5 +1,6 @@
 import TinyColor from 'tinycolor2'
 import { throttle } from 'lodash'
+
 import gameConfig from '~/config/game'
 
 export class Character {
