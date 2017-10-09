@@ -549,8 +549,9 @@ function DoEject(player, cosx, sinx)
         return null;
     }
 
-    var mass = new GameObject(0, OBJECT_TYPE.MASS, cfg.massWeight, cfg.massRadius);
-    player.weight -= cfg.massWeight;
+    var mass = GenerateGameObject(OBJECT_TYPE.MASS);
+    mass.id = 0;
+    player.weight -= mass.weight;
     UpdateAttr(player);
 
     var ejectDis = player.radius * cfg.ejectDistanceToRadius;
@@ -603,6 +604,7 @@ function TestFoo()
 
 
     console.log(Update(0));
+    Eject(0,0);
     console.log(Update(0));
     console.log(Update(0));
 }
