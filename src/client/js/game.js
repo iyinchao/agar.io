@@ -7,8 +7,7 @@ import Phaser from 'phaser'
 /* eslint-enable no-unused-vars */
 import gameConfig from '~/config/game'
 import { Player, Food, Virus, MassFood } from '@/js/characters'
-
-// import Smoother from '@/js/smoother'
+import Smoother from '@/js/smoother'
 
 // const smootherX = new Smoother()
 // const smootherY = new Smoother()
@@ -22,6 +21,30 @@ let mX = 0
 let mY = 0
 
 let preloadIntervalId = -1
+
+const camBoundPlayer = { min: 0.05, max: 0.85 }
+const camBoundLimit = { min: 0.65, max: 2 }
+// const camPreferredScale = 1.0
+
+const smrGuideLineOpacity = new Smoother({
+  method: 'exponential',
+  params: { alpha: 0.5 }
+})
+
+const smrCamScale = new Smoother({
+  method: 'exponential',
+  params: { alpha: 0.05 }
+})
+
+const smrCamX = new Smoother({
+  method: 'exponential',
+  params: { alpha: 1 }
+})
+
+const smrCamY = new Smoother({
+  method: 'exponential',
+  params: { alpha: 1 }
+})
 
 const deleteOp = (obj) => {
   delete obj.op
@@ -132,8 +155,25 @@ const States = {
                     this.g.addCharacter('player', deleteOp(diff))
                     break
                   case 0:
-                    // Sync data
                     p = this.g.getCharacter('player', diff.id)
+                    if (diff.id === this.g.$info.myId) {
+                      const diffWeight = diff.weight / 50
+                      const pWeight = p.weight / 50
+                      if (diffWeight - pWeight === 1) {
+                        if (this.g.$sounds['gain'].isDecoded) {
+                          console.log('gain')
+                          this.g.$sounds['gain'].restart()
+                          this.g.$sounds['gain'].play()
+                        }
+                      } else if (diffWeight - pWeight >= 5) {
+                        console.log('gain-big')
+                        if (this.g.$sounds['gain'].isDecoded) {
+                          this.g.$sounds['gain-big'].restart()
+                          this.g.$sounds['gain-big'].play()
+                        }
+                      }
+                    }
+                    // Sync data
                     const props = Object.keys(deleteOp(diff))
                     props.forEach((prop) => {
                       p[prop] = diff[prop]
@@ -151,6 +191,8 @@ const States = {
                     if (diff.id === this.g.$info.myId) {
                       // Die logic
                       this.g.$overlay.setState('died')
+                      this.g.$sounds['bg'].stop()
+                      this.g.$sounds['died'].play()
                     }
                     p = this.g.removeCharacter('player', diff.id)
                     if (p) {
@@ -197,6 +239,11 @@ const States = {
 
         this.g.load.image('background', require('@/assets/img/tile.png'))
         this.g.load.audio('bg', require('@/assets/audio/bg.mp3'))
+        this.g.load.audio('gain', require('@/assets/audio/gain.mp3'))
+        this.g.load.audio('gain-big', require('@/assets/audio/gain-big.mp3'))
+        this.g.load.audio('split', require('@/assets/audio/split.mp3'))
+        this.g.load.audio('shrink', require('@/assets/audio/shrink.mp3'))
+        this.g.load.audio('died', require('@/assets/audio/died.mp3'))
       }
     },
     create () {
@@ -213,14 +260,21 @@ const States = {
 
       // Reset sprites
       this.g.$sprites = {}
-      this.g.$sprites['background'] = this.add.tileSprite(
+      this.g.$sprites['background'] = this.g.add.tileSprite(
         0, 0, gameConfig.world.width, gameConfig.world.height,
         'background')
 
-      // FIXME: sound demo
       this.g.$sounds = {}
       this.g.$sounds['bg'] = this.g.add.audio('bg')
       this.g.$sounds['bg'].loop = true
+      this.g.$sounds['bg'].volume = 0.5
+      this.g.$sounds['gain'] = this.g.add.audio('gain')
+      this.g.$sounds['gain'].volume = 500
+      this.g.$sounds['gain-big'] = this.g.add.audio('gain-big')
+      this.g.$sounds['gain-big'].volume = 50
+      this.g.$sounds['split'] = this.g.add.audio('split')
+      this.g.$sounds['shrink'] = this.g.add.audio('shrink')
+      this.g.$sounds['died'] = this.g.add.audio('died')
       const soundArray = Object.keys(this.g.$sounds).map((key) => {
         return this.g.$sounds[key]
       })
@@ -259,6 +313,8 @@ const States = {
               right: cell.x + cell.r,
               bottom: cell.y + cell.r
             }
+            playerBound.width = playerBound.right - playerBound.left
+            playerBound.height = playerBound.bottom - playerBound.top
             return
           }
           let top = cell.y - cell.r
@@ -269,6 +325,8 @@ const States = {
           playerBound.left = Math.min(playerBound.left, left)
           playerBound.right = Math.max(playerBound.right, right)
           playerBound.bottom = Math.max(playerBound.bottom, bottom)
+          playerBound.width = playerBound.right - playerBound.left
+          playerBound.height = playerBound.bottom - playerBound.top
         })
         if (this.g.$debug) {
           this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
@@ -280,9 +338,71 @@ const States = {
           this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
 
-        this.g.camera.x = (playerBound.right + playerBound.left - this.g.width) / 2
-        this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.height) / 2
-        // this.g.camera.scale.setTo(2, 2)
+        // Set best scale for camera
+        const cam = this.g.camera
+        // const camPreferredScale = 2 - Math.pow(playerBound.width, 1 / 1.5) / 40
+        const camPreferredScale = 1
+        // let camPreferredScale = 2
+        let scaleX = camPreferredScale
+        let scaleY = camPreferredScale
+        let scale = camPreferredScale
+        // rule 1: Bound player
+        // Try to display with preferred scale:
+        const ppW = playerBound.width / (cam.width / camPreferredScale)
+        const ppH = playerBound.height / (cam.height / camPreferredScale)
+        if (ppW > camBoundPlayer.max) {
+          scaleX = camBoundPlayer.max * (cam.width / playerBound.width)
+        } else if (ppW < camBoundPlayer.min) {
+          scaleX = camBoundPlayer.min * (cam.width / playerBound.width)
+        }
+        if (ppH > camBoundPlayer.max) {
+          scaleY = camBoundPlayer.max * (cam.height / playerBound.height)
+        } else if (ppH < camBoundPlayer.min) {
+          scaleY = camBoundPlayer.min * (cam.height / playerBound.height)
+        }
+
+        if (scaleX >= 1 && scaleY >= 1) {
+          scale = Math.max(scaleX, scaleY)
+        } else if (scaleX < 1 && scaleY < 1) {
+          scale = Math.min(scaleX, scaleY)
+        } else {
+          scale = Math.min(scaleX, scaleY)
+        }
+
+        // rule 2: limit scale to pre-defined bounds
+        if (scale < camBoundLimit.min) {
+          scale = camBoundLimit.min
+        }
+        if (scale > camBoundLimit.max) {
+          scale = camBoundLimit.max
+        }
+
+        // rule 3: make world stretch to cover the window
+        scaleX = scaleY = scale
+        const displayW = cam.width / scale
+        const displayH = cam.height / scale
+        if (displayW > gameConfig.world.width) {
+          scaleX = cam.width / gameConfig.world.width
+        }
+        if (displayH > gameConfig.world.height) {
+          scaleY = cam.height / gameConfig.world.height
+        }
+        scale = Math.min(scaleX, scaleY)
+
+        smrCamScale.setValue(scale)
+        const smoothedScale = smrCamScale.getValue()
+        this.g.camera.scale.setTo(smoothedScale, smoothedScale)
+
+        // Center player
+        smrCamX.setValue(
+          (playerBound.right + playerBound.left) / 2 * this.g.camera.scale.x - (this.g.camera.width) / 2
+        )
+        smrCamY.setValue(
+          (playerBound.top + playerBound.bottom) / 2 * this.g.camera.scale.y - (this.g.camera.height) / 2
+        )
+
+        this.g.camera.x = Math.round(smrCamX.getValue())
+        this.g.camera.y = Math.round(smrCamY.getValue())
       }
 
       if (this.g.$debug) {
@@ -291,9 +411,6 @@ const States = {
         this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
         this.game.$graphics.lineStyle(0, 0x000000, 0)
       }
-
-      // this.game.camera.x = camX
-      // this.game.camera.y = camY
 
       this.g.$viewRect = this.g.getViewRect()
 
@@ -344,28 +461,6 @@ const States = {
       }
       this.g.$leaderBoardTimer++
 
-      // this.game.foodList.forEach((food) => {
-      //   this.game.drawFood(food)
-      // })
-
-      // this.game.playerList.forEach((player) => {
-      //   if (player.id === this.game.me.id) {
-      //     this.game.me = player
-      //   }
-      //   let cell = player.cells[0]
-      //   this.game.$graphics.beginFill(0xa92cc8, 1)
-      //   this.game.drawCircle(this.game.scale.width / 2, this.game.scale.height / 2, cell.radius, 40)
-      //   this.game.$graphics.endFill()
-      // })
-
-      // if (a < 200) {
-      //   a += 0.5
-      // }
-      // const player = this.game.getCharacter('player', '1')
-      // player.r = a
-      // player.position.x += Math.round(ax * 6)
-      // player.position.y += Math.round(ay * 6)
-
       // update speeds
       const delta = 0.1
       if (this.g.$key) {
@@ -397,7 +492,6 @@ const States = {
           vY = -1
         }
         if (vX !== lvX || vY !== lvY) {
-          // console.log('send!', vX, vY)
           this.g.$ws.emit('op', {
             t: 'mv',
             x: vX,
@@ -413,7 +507,8 @@ const States = {
     render () {
       if (this.g.$debug) {
         this.game.debug.cameraInfo(this.game.camera, 32, 64)
-        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
+        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 30, 200, '#000')
+        this.game.debug.text(`Camera scale: ${this.g.camera.scale.x}`, 30, 240, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
     },
@@ -503,8 +598,8 @@ const Callbacks = {
   },
   move (pointer, x, y, fromClick) {
     // Get position of world
-    mX = x + this.game.camera.x
-    mY = y + this.game.camera.y
+    mX = (x + this.game.camera.x) / this.game.camera.scale.x
+    mY = (y + this.game.camera.y) / this.game.camera.scale.y
 
     // Get current player
     const p = this.game.getCharacter('player', this.game.$info.myId)
@@ -530,6 +625,8 @@ const Callbacks = {
         userID: this.game.$info.userId,
         gameID: this.game.$info.gameId
       })
+
+      smrGuideLineOpacity.setValue(1)
     }
   }
 }
@@ -847,6 +944,10 @@ class Game extends Phaser.Game {
   splitPlayer () {
     const my = this.getCharacter('player', this.$info.myId)
     if (my) {
+      if (this.$sounds['split'].isDecoded) {
+        this.$sounds['split'].restart()
+        this.$sounds['split'].play()
+      }
       this.$ws.emit('op', {
         t: 'space',
         userID: this.$info.userId,
@@ -857,6 +958,10 @@ class Game extends Phaser.Game {
   shrinkPlayer () {
     const my = this.getCharacter('player', this.$info.myId)
     if (my) {
+      if (this.$sounds['shrink'].isDecoded) {
+        this.$sounds['shrink'].restart()
+        this.$sounds['shrink'].play()
+      }
       this.$ws.emit('op', {
         t: 'w',
         userID: this.$info.userId,

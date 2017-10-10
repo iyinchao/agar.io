@@ -129,8 +129,7 @@ export class Player extends Character {
   updateCell () {
     this.parent.game.$graphics.lineStyle(10, this.parent._hexColor, 1)
     this.parent.game.$graphics.beginFill(this.parent._hexFillColor, 1)
-    // this.parent.game.$graphics.drawCircle(this.x, this.y, this.r * 2)
-    this.parent.game.drawCircle(this.x, this.y, this.r)
+    this.parent.game.drawCircle(Math.round(this.x), Math.round(this.y), this.r)
     this.parent.game.$graphics.endFill()
     this.parent.game.$graphics.lineWidth = 0
   }
@@ -171,7 +170,16 @@ export class Virus extends Character {
 export class MassFood extends Character {
   constructor (options) {
     super(options)
+    this._hexColor = this.hueToHex(this.hue)
+    this._hexFillColor = parseInt(
+      TinyColor({h: this.hue, s: 100, v: 100}).darken(10).toHex(),
+      16)
   }
   update () {
+    this.game.$graphics.lineStyle(3, this._hexColor, 1)
+    this.game.$graphics.beginFill(this._hexFillColor, 1)
+    this.game.drawCircle(Math.round(this.x), Math.round(this.y), this.r)
+    this.game.$graphics.endFill()
+    this.game.$graphics.lineWidth = 0
   }
 }

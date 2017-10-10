@@ -31,8 +31,8 @@ const config = {
   },
   production: {
     server: {
-      host: 'http://45.76.205.64:3000',
-      ws: 'http://45.76.205.64:3000'
+      host: 'http://agar.iyinchao.cn:3000',
+      ws: 'http://agar.iyinchao.cn:3000'
     }
   }
 }
