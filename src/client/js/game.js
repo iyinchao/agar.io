@@ -161,12 +161,10 @@ const States = {
                       const pWeight = p.weight / 50
                       if (diffWeight - pWeight === 1) {
                         if (this.g.$sounds['gain'].isDecoded) {
-                          console.log('gain')
                           this.g.$sounds['gain'].restart()
                           this.g.$sounds['gain'].play()
                         }
                       } else if (diffWeight - pWeight >= 5) {
-                        console.log('gain-big')
                         if (this.g.$sounds['gain'].isDecoded) {
                           this.g.$sounds['gain-big'].restart()
                           this.g.$sounds['gain-big'].play()
@@ -846,13 +844,14 @@ class Game extends Phaser.Game {
       }
     })
 
+    const sortList = []
     //
     // TODO: sorting characters
     this.$playerList.forEach((player) => {
       if (player.cells && player.cells.length) {
         player.cells.forEach((cell) => {
           if (this.isInView(cell)) {
-            this.$renderList.push(cell)
+            sortList.push(cell)
           }
 
           // FIXME: debug
@@ -872,22 +871,44 @@ class Game extends Phaser.Game {
           // FIXME:
         })
         if (this.isInView(player)) {
-          this.$renderList.push(player)
+          sortList.push(player)
         }
       }
     })
 
     this.$virusList.forEach((virus) => {
       if (this.isInView(virus)) {
-        this.$renderList.push(virus)
+        sortList.push(virus)
       }
     })
 
     this.$massFoodList.forEach((massFood) => {
       if (this.isInView(massFood)) {
-        this.$renderList.push(massFood)
+        sortList.push(massFood)
       }
     })
+
+    sortList.sort((a, b) => {
+      if (a.r && b.r) {
+        if (a.r > b.r) {
+          return 1
+        } else if (a.r < b.r) {
+          return -1
+        } else {
+          return 0
+        }
+      } else {
+        if (!a.r && b.r) {
+          return -1
+        }
+        if (!b.r && a.r) {
+          return 1
+        }
+        return 0
+      }
+    })
+
+    this.$renderList = this.$renderList.concat(sortList)
   }
   isFullScreen () {
     const fse = document.fullscreenElement ||

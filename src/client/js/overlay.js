@@ -26,12 +26,19 @@ class Overlay {
     // Gather refs
     this.refs = {}
     const refList = this.dom.querySelectorAll('[data-ref]')
-    refList.forEach((dom) => {
+    for (let i = 0; i < refList.length; i++) {
+      const dom = refList[i]
       const refAttr = dom.getAttribute('data-ref')
       if (refAttr) {
         this.refs[refAttr] = dom
       }
-    })
+    }
+    // refList.forEach((dom) => {
+    //   const refAttr = dom.getAttribute('data-ref')
+    //   if (refAttr) {
+    //     this.refs[refAttr] = dom
+    //   }
+    // })
 
     this.toastTimeout = 0
     this.xhrList = new Map()
