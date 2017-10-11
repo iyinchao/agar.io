@@ -12,7 +12,7 @@ yarn-error.log*
 logs/
 
 # Build outputs
-dist/
+# dist/
 
 # Persional Folders & auto generated
 .charlieyin/
