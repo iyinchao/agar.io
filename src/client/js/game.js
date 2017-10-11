@@ -603,8 +603,8 @@ const Callbacks = {
         this.game.shrinkPlayer()
         this.game.$overlay.refs.controlShrink.classList.remove('active')
         break
-      case 'KeyM':
-        this.game.$overlay.toggleMenu()
+      // case 'KeyM':
+      //   this.game.$overlay.toggleMenu()
     }
   },
   move (pointer, x, y, fromClick) {
