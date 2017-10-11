@@ -31,7 +31,7 @@
     "playerWeightToRegion": 1,
     "playerMinRadius": 15,
     "splitDistanceToRadius": 3,
-    "ejectDistanceToRadius": 2,
+    "ejectDistanceToRadius": 3,
     "maxCellCount": 16,
 
     "foodWeight": 50,
