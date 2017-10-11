@@ -544,7 +544,8 @@ function Update(_gameId)
 
 function DoEject(player, cosx, sinx)
 {
-    if (player.weight < cfg.massWeight) {
+    if (player.weight < cfg.massWeight ||
+        player.weight < cfg.playerWeight) {
         GameLog("-", "*", "Eject weight too small");
         return null;
     }
