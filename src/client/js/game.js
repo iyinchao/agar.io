@@ -85,7 +85,14 @@ const States = {
           clearInterval(this.g.$heartbeatTimer)
         }
         this.g.$heartbeatTimer = setInterval(() => {
-          if (!this.g.$overlay.isBrowserInactive()) {
+          // FIXME: temp
+          // if (!this.g.$overlay.isBrowserInactive()) {
+          //   this.g.$ws.emit('heartbeat', {
+          //     gameID: this.g.$info.gameId,
+          //     userID: this.g.$info.userId
+          //   })
+          // }
+          if (true) {
             this.g.$ws.emit('heartbeat', {
               gameID: this.g.$info.gameId,
               userID: this.g.$info.userId
@@ -160,12 +167,12 @@ const States = {
                       const diffWeight = diff.weight / 50
                       const pWeight = p.weight / 50
                       if (diffWeight - pWeight === 1) {
-                        if (this.g.$sounds['gain'].isDecoded) {
+                        if (this.g.$sounds['gain'].isDecoded && this.g.$overlay.menuSettings.sfxPlay) {
                           this.g.$sounds['gain'].restart()
                           this.g.$sounds['gain'].play()
                         }
                       } else if (diffWeight - pWeight >= 5) {
-                        if (this.g.$sounds['gain'].isDecoded) {
+                        if (this.g.$sounds['gain'].isDecoded && this.g.$overlay.menuSettings.sfxPlay) {
                           this.g.$sounds['gain-big'].restart()
                           this.g.$sounds['gain-big'].play()
                         }
@@ -190,7 +197,9 @@ const States = {
                       // Die logic
                       this.g.$overlay.setState('died')
                       this.g.$sounds['bg'].stop()
-                      this.g.$sounds['died'].play()
+                      if (this.g.$overlay.menuSettings.sfxPlay) {
+                        this.g.$sounds['died'].play()
+                      }
                     }
                     p = this.g.removeCharacter('player', diff.id)
                     if (p) {
@@ -277,7 +286,9 @@ const States = {
         return this.g.$sounds[key]
       })
       this.g.sound.setDecodedCallback(soundArray, function () {
-        this.g.$sounds['bg'].play()
+        if (this.g.$overlay.menuSettings.bgmPlay) {
+          this.g.$sounds['bg'].play()
+        }
       }, this)
 
       this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
@@ -592,6 +603,8 @@ const Callbacks = {
         this.game.shrinkPlayer()
         this.game.$overlay.refs.controlShrink.classList.remove('active')
         break
+      case 'KeyM':
+        this.game.$overlay.toggleMenu()
     }
   },
   move (pointer, x, y, fromClick) {
@@ -965,7 +978,7 @@ class Game extends Phaser.Game {
   splitPlayer () {
     const my = this.getCharacter('player', this.$info.myId)
     if (my) {
-      if (this.$sounds['split'].isDecoded) {
+      if (this.$sounds['split'].isDecoded && this.$overlay.menuSettings.sfxPlay) {
         this.$sounds['split'].restart()
         this.$sounds['split'].play()
       }
@@ -979,7 +992,7 @@ class Game extends Phaser.Game {
   shrinkPlayer () {
     const my = this.getCharacter('player', this.$info.myId)
     if (my) {
-      if (this.$sounds['shrink'].isDecoded) {
+      if (this.$sounds['shrink'].isDecoded && this.$overlay.menuSettings.sfxPlay) {
         this.$sounds['shrink'].restart()
         this.$sounds['shrink'].play()
       }

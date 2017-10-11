@@ -34,6 +34,18 @@ const config = {
       host: 'http://agar.iyinchao.cn:3000',
       ws: 'http://agar.iyinchao.cn:3000'
     }
+  },
+  cordova: {
+    dist: 'src/cordova/www',
+    client: {
+      dir: '/',
+      assetDir: 'static',
+      assetPublicPath: '/android_asset/www/'
+    },
+    server: {
+      host: 'http://agar.iyinchao.cn:3000',
+      ws: 'http://agar.iyinchao.cn:3000'
+    }
   }
 }
 

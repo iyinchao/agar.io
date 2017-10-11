@@ -90,6 +90,7 @@
     width: 100%;
     text-align: center;
     transition: opacity 250ms;
+    z-index: $zIndexMask + 1;
     &.hide {
       opacity: 0;
       pointer-events: none;
@@ -125,6 +126,7 @@
     pointer-events: auto;
     transform: translate(-50%, -50%);
     transition: transform 300ms, opacity 300ms;
+    z-index: $zIndexPanel;
     &>.content {
       padding: 20px;
     }
@@ -205,6 +207,7 @@
       position: fixed;
       bottom: 0;
       right: 0;
+      z-index: $zIndexMenu + 1;
     }
   }
   #mask {
@@ -216,11 +219,67 @@
     bottom: 0;
     transition: opacity 400ms;
     pointer-events: auto;
+    z-index: $zIndexMask;
     &.hide {
       opacity: 0;
       pointer-events: none;
     }
     &.hidden {
+      display: none;
+    }
+  }
+  #menu.menu-wrapper {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(black, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-50%, -50%) scale(1);
+    transition: opacity 200ms, transform 200ms;
+    .menu-container {
+      max-width: 100vw;
+      max-height: 100vh;
+      overflow-y: auto;
+      padding: 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .menu-item {
+      display: block;
+      width: 100%;
+      max-width: 500px;
+      pointer-events: auto;
+      height: 42px;
+      border-radius: $borderRadius;
+      background-color: transparent;
+      border: none;
+      color: white;
+      &:not(:last-child) {
+        margin-bottom: 15px;
+      }
+      &.active, &:active {
+        background-color: rgba(255, 255, 255, 0.16);
+        box-shadow: 0 0 0 1px white;
+        &.red {
+          background-color: rgba(red, 0.6);
+          box-shadow: 0 0 0 1px red;
+        }
+      }
+    }
+    &.hide {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(1.3);
+      pointer-events: none;
+    }
+    &.hidden {
+      // transform: translate(-50%, -50%) scale(1.3);
+      // opacity: 0;
       display: none;
     }
   }

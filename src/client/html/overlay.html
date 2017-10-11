@@ -25,10 +25,17 @@
       <button data-ref="btDiedLeave" class="button yellow">离开这里</button>
     </div>
   </div>
-  <div data-ref="menu"></div>
+  <div id="menu" class="menu-wrapper hidden" data-ref="menu">
+    <div class="menu-container">
+      <button class="menu-item" data-ref="menuFullScreen">全屏</button>
+      <button class="menu-item" data-ref="menuBGM">背景音乐</button>
+      <button class="menu-item" data-ref="menuSFX">音效</button>
+      <button class="menu-item red" data-ref="menuExit">离开这里</button>
+    </div>
+  </div>
   <div id="game-panel" class="panel" data-ref="panelGame">
     <div class="avatar" data-ref="gamePanelAvatar">
-      <div class="placeholder"></div>
+      <div class="placeholder"></div> 
       <div class="content"><div class="image"></div></div>
     </div>
     <div class="title" data-ref="gameTitle">Agar.io<div class="title-badge">Clone!</div></div>

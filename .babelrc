@@ -18,6 +18,11 @@
       "plugins": [
         ["transform-define", {"process.env.NODE_ENV": "production"}]
       ]
+    },
+    "cordova": {
+      "plugins": [
+        ["transform-define", {"process.env.NODE_ENV": "cordova"}]
+      ]
     }
   },
   "plugins": ["transform-runtime"]

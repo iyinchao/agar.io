@@ -10,6 +10,7 @@ const game = new Game({
   ws
 })
 const overlay = new Overlay({
+  game,
   ws
 })
 
@@ -37,4 +38,7 @@ if (process.env.NODE_ENV === 'production') {
   // Inject global variables for debugging
   window.$game = game
   window.$overlay = overlay
+} else if (process.env.NODE_ENV === 'cordova') {
+  window.PhaserGlobal.hideBanner = true
+  // TODO: Do sth here
 }

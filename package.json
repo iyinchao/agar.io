@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development node ./scripts/dev.js",
     "build": "cross-env NODE_ENV=production node --max-old-space-size=4096 ./scripts/build.js",
+    "cordova": "cross-env NODE_ENV=cordova node --max-old-space-size=4096 ./scripts/build.js",
     "server": "node ./src/server/server.js",
     "server-static": "node ./src/server/server-static.js"
   },

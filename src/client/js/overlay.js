@@ -33,16 +33,107 @@ class Overlay {
         this.refs[refAttr] = dom
       }
     }
-    // refList.forEach((dom) => {
-    //   const refAttr = dom.getAttribute('data-ref')
-    //   if (refAttr) {
-    //     this.refs[refAttr] = dom
-    //   }
-    // })
 
     this.toastTimeout = 0
     this.xhrList = new Map()
     this.userInfo = null // null represents not logged in status.
+
+    // Make reactive settings
+    const _this = this
+    this.menuSettings = {
+      _restore: function () {
+        const setting = storage.get('menuSettings')
+        if (setting) {
+          Object.keys(setting).forEach((key) => {
+            this[key] = setting[key]
+          })
+        }
+        if (!setting) {
+          this.bgmPlay = this._bgmPlay
+          this.sfxPlay = this._sfxPlay
+          this.fullScreen = this._fullScreen
+        }
+      },
+      _save: function () {
+        // Remove underlined property
+        const obj = JSON.parse((JSON.stringify(this)))
+        Object.keys(obj).forEach((key) => {
+          if (key && key[0] === '_') {
+            delete obj[key]
+          }
+        })
+        storage.set('menuSettings', obj)
+      },
+      _bgmPlay: true,
+      get bgmPlay () {
+        return this._bgmPlay
+      },
+      set bgmPlay (v) {
+        const sound = _this.game.$sounds ? _this.game.$sounds['bg'] : null
+        if (!v) {
+          this._bgmPlay = false
+          if (sound && sound.isPlaying) {
+            sound.stop()
+          }
+        }
+        if (v) {
+          this._bgmPlay = true
+          if (sound && !sound.isPlaying) {
+            sound.play()
+          }
+        }
+        if (this._bgmPlay) {
+          _this.refs.menuBGM.classList.add('active')
+        } else {
+          _this.refs.menuBGM.classList.remove('active')
+        }
+        this._save()
+      },
+      _sfxPlay: true,
+      get sfxPlay () {
+        return this._sfxPlay
+      },
+      set sfxPlay (v) {
+        if (!v) {
+          this._sfxPlay = false
+        }
+        if (v) {
+          this._sfxPlay = true
+        }
+        if (this._sfxPlay) {
+          _this.refs.menuSFX.classList.add('active')
+        } else {
+          _this.refs.menuSFX.classList.remove('active')
+        }
+        this._save()
+      },
+      _fullScreen: false,
+      get fullScreen () {
+        return this._fullScreen
+      },
+      set fullScreen (v) {
+        if (v && !this._fullScreen) {
+          _this.game.enterFullScreen()
+          if (_this.game.isFullScreen()) {
+            this._fullScreen = true
+          }
+        }
+        if (!v && this._fullScreen) {
+          _this.game.exitFullScreen()
+          if (!_this.game.isFullScreen()) {
+            this._fullScreen = false
+          }
+        }
+        // setTimeout(() => {
+        //   if (this._fullScreen) {
+        //     _this.refs.menuFullScreen.classList.add('active')
+        //   } else {
+        //     _this.refs.menuFullScreen.classList.remove('active')
+        //   }
+        // }, 500)
+        this._save()
+      }
+    }
 
     this.init()
   }
@@ -80,8 +171,26 @@ class Overlay {
     this.refs.controlShrink.addEventListener('click', () => {
       this.onControlShrinkClick()
     })
+    this.refs.controlMenu.addEventListener('click', () => {
+      this.toggleMenu()
+    })
+    this.refs.menuBGM.addEventListener('click', () => {
+      this.menuSettings.bgmPlay = !this.menuSettings.bgmPlay
+    })
+    this.refs.menuSFX.addEventListener('click', () => {
+      this.menuSettings.sfxPlay = !this.menuSettings.sfxPlay
+    })
+    this.refs.menuFullScreen.addEventListener('click', () => {
+      this.menuSettings.fullScreen = !this.menuSettings.fullScreen
+    })
+    this.refs.menuExit.addEventListener('click', () => {
+      this.game.exit()
+    })
     // This is to prevent focus change.
     this.refs.controls.addEventListener('mousedown', (e) => {
+      e.preventDefault()
+    }, true)
+    this.refs.menu.addEventListener('mousedown', (e) => {
       e.preventDefault()
     }, true)
 
@@ -89,6 +198,29 @@ class Overlay {
 
     // Pickup localstorage
     this.relogin()
+    this.menuSettings._restore()
+
+    //
+    let fullScreenEventName = ''
+    if (document.onfullscreenchange !== undefined) {
+      fullScreenEventName = 'fullscreenchange'
+    } else if (document.onwebkitfullscreenchange !== undefined) {
+      fullScreenEventName = 'webkitfullscreenchange'
+    } else if (document.onmozfullscreenchange !== undefined) {
+      fullScreenEventName = 'mozfullscreenchange'
+    } else if (document.onmsfullscreenchange !== undefined) {
+      fullScreenEventName = 'MSFullscreenChange'
+    }
+
+    document.addEventListener(fullScreenEventName, () => {
+      if (this.game.isFullScreen()) {
+        this.refs.menuFullScreen.classList.add('active')
+        this.menuSettings.fullScreen = true
+      } else {
+        this.refs.menuFullScreen.classList.remove('active')
+        this.menuSettings.fullScreen = false
+      }
+    })
   }
   hide (dom) {
     if (!dom.classList.contains('hidden')) {
@@ -110,6 +242,13 @@ class Overlay {
         dom.removeEventListener('transitionend', this.onHideTransitionEnd)
         dom.classList.remove('hide')
       }
+    }
+  }
+  isShown (dom) {
+    if (dom.classList.contains('hide') || dom.classList.contains('hidden')) {
+      return false
+    } else {
+      return true
     }
   }
   isBrowserInactive () {
@@ -148,6 +287,23 @@ class Overlay {
       this.toastTimeout = 0
     }, op.timeout)
   }
+  toggleMenu (force) {
+    if (this.isShown(this.refs.mask) && this.isShown(this.refs.menu)) {
+      this.refs.controlMenu.classList.remove('active')
+      this.hide(this.refs.menu)
+      return
+    }
+    if (this.isShown(this.refs.menu) || force === false) {
+      this.refs.controlMenu.classList.remove('active')
+      this.hide(this.refs.menu)
+      return
+    }
+    if (!this.isShown(this.refs.menu) || force === true) {
+      // Sync menu state
+      this.refs.controlMenu.classList.add('active')
+      this.show(this.refs.menu)
+    }
+  }
   hideToast () {
     this.hide(this.refs.toast)
   }
@@ -173,6 +329,7 @@ class Overlay {
         this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
         this.hide(this.refs.leaderBoard)
+        this.toggleMenu(false)
         if (op.mode === 'register') {
           this.setUserPanelMode('register')
         } else {
@@ -186,10 +343,12 @@ class Overlay {
         this.hide(this.refs.infoLoading)
         this.hide(this.refs.infoDied)
         this.hide(this.refs.leaderBoard)
+        this.toggleMenu(false)
         this.setGamePanelState()
         break
       case 'died':
         this.show(this.refs.mask)
+        this.hide(this.refs.menu)
         this.show(this.refs.infoDied)
         break
       case 'preloading':
@@ -198,6 +357,7 @@ class Overlay {
         this.show(this.refs.infoLoading)
         this.hide(this.refs.panelGame)
         this.hide(this.refs.infoDied)
+        this.toggleMenu(false)
         break
       case 'joining':
         this.show(this.refs.mask)
@@ -205,6 +365,7 @@ class Overlay {
         this.show(this.refs.infoLoading)
         this.hide(this.refs.panelGame)
         this.hide(this.refs.infoDied)
+        this.toggleMenu(false)
         break
       case 'gaming':
         this.hide(this.refs.mask)
