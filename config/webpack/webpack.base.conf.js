@@ -14,7 +14,7 @@ module.exports = {
   output: {
     filename: `${config.client.assetDir}/js/[name].[hash:7].js`,
     path: utils.dir(`${config.dist}/${config.client.dir}`),
-    publicPath: config.client.publicPath
+    publicPath: config.client.assetPublicPath
   },
   resolve: {
     extensions: ['.js', '.json'],
@@ -67,7 +67,7 @@ module.exports = {
         }
       },
       {
-        test: /\.(woff2?|eot|ttf|otf)(\?.*)?$/,
+        test: /\.(woff2?|eot|ttf|otf|svg)(\?.*)?$/,
         loader: 'url-loader',
         include: [utils.dir('src/client/assets/font')],
         options: {

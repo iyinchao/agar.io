@@ -4,6 +4,9 @@
 */
 
 const config = {
+  player: {
+
+  },
   world: {
     width: 5000,
     height: 5000

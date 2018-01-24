@@ -27,13 +27,23 @@ module.exports = merge(webpackBaseConf, {
           fallback: 'style-loader',
           use: [
             {
+              loader: 'css-loader',
+              options: {
+                sourceMap: true,
+                importLoaders: 2,
+                minimize: {
+                  discardUnused: false,
+                  autoprefixer: false
+                }
+              }
+            },
+            {
               loader: 'postcss-loader',
               options: {
                 sourceMap: true,
                 plugins: [
-                  require('cssnano')(),
                   require('autoprefixer')({
-                    browsers: [config.client.browserList]
+                    browsers: config.client.browserList
                   })
                 ]
               },

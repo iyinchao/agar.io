@@ -35,6 +35,7 @@ function PlayerGroup(_x, _y, _name, _player)
         players: [_player],
         color: util.randomInRange(1, 359),
         name: _name,
+        kill: 0,
         scene: {
             leftUp: [0, 0],
             rightDown: [0, 0],
@@ -47,7 +48,18 @@ function Exit(_gameId, playerId)
     var game = gameRefs[_gameId];
     if (!game) return;
 
+    var pg = game.moveables[playerId];
+    if (!pg) return;
+
+    var ret = {
+        weight: 0,  
+        kill: pg.kill,
+    };
+    for (var i = 0; i < pg.players.length; ++i) {
+        ret.weight += pg.players[i].weight;
+    }
     delete game.moveables[playerId];
+    return ret;
 }
 
 function Game(_id)
@@ -281,7 +293,10 @@ function DoMultiSplit(player)
         UpdateAttr(newOne);
         newOne.x = (d * virusSplitDir[i][0] + player.x);
         newOne.y = (d * virusSplitDir[i][1] + player.y);
-        if (CheckBound(newOne)) continue;
+        if (CheckBound(newOne)) {
+            player.weight += pw;
+            continue;
+        }
         ret.push(newOne);
     }
     player.weight = (player.weight / virusSplitDir.length);
@@ -306,8 +321,10 @@ function DoBinSplit(player, cosx, sinx)
     var splitDistance = copy.radius * cfg.splitDistanceToRadius;
     copy.x = (splitDistance * cosx + player.x);
     copy.y = (splitDistance * sinx + player.y);
-    if (CheckBound(copy))
+    if (CheckBound(copy)) {
+        player.weight += copy.weight;
         return null;
+    }
     return copy;
 }
 
@@ -374,9 +391,15 @@ function CollideWithObject(player, obj, game, nrPlayers)
 
 function CollidePlayerGroup(player, start, playerGroup)
 {
+    var eat = 0;
     for (var i = 0; i < playerGroup.players.length; ++i) {
+        var prev = playerGroup.players[i].weight;
         CollideWithObject(player, playerGroup.players[i]);
+        if (prev != playerGroup.players[i].weight) {
+            eat++;
+        }
     }
+    return eat;
 }
 
 function CollideOtherPlayers(player, pgid, game)
@@ -402,7 +425,7 @@ function DetectCollision(game)
             CollidePlayerGroup(pg.players[i], i + 1, pg);
 
             // collide with other players
-            CollideOtherPlayers(pg.players[i], gid, game);
+            pg.kill += CollideOtherPlayers(pg.players[i], gid, game);
             
             // collide with food, virus and mass
             for (var objID in game.others) {
@@ -483,7 +506,10 @@ function ExtractPlayerScene(game)
     }
     for (var id in game.others) {
         var obj = game.others[id];
-        objs.push(new NewSceneObject(obj));
+        var nso = NewSceneObject(obj);
+        if (obj.type == OBJECT_TYPE.VIRUS)
+            delete nso.hue;
+        objs.push(nso);
     }
     return objs;
 }
@@ -518,13 +544,15 @@ function Update(_gameId)
 
 function DoEject(player, cosx, sinx)
 {
-    if (player.weight < cfg.massWeight) {
+    if (player.weight < cfg.massWeight ||
+        player.weight < cfg.playerWeight) {
         GameLog("-", "*", "Eject weight too small");
         return null;
     }
 
-    var mass = new GameObject(0, OBJECT_TYPE.MASS, cfg.massWeight, cfg.massRadius);
-    player.weight -= cfg.massWeight;
+    var mass = GenerateGameObject(OBJECT_TYPE.MASS);
+    mass.id = 0;
+    player.weight -= mass.weight;
     UpdateAttr(player);
 
     var ejectDis = player.radius * cfg.ejectDistanceToRadius;
@@ -577,6 +605,7 @@ function TestFoo()
 
 
     console.log(Update(0));
+    Eject(0,0);
     console.log(Update(0));
     console.log(Update(0));
 }

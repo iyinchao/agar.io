@@ -1,0 +1,11 @@
+$cell-font-path: "fonts" !default;
+
+@font-face {
+	font-family: 'cell';
+	src:
+		url('#{$cell-font-path}/cell.woff') format('woff'),
+		url('#{$cell-font-path}/cell.ttf') format('truetype'),
+		url('#{$cell-font-path}/cell.svg#NeuropolXRg-Regular') format('svg');
+	font-weight: normal;
+	font-style: normal;
+}

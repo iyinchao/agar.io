@@ -6,9 +6,8 @@ import P2 from 'p2'
 import Phaser from 'phaser'
 /* eslint-enable no-unused-vars */
 import gameConfig from '~/config/game'
-import { Player, Food, Virus } from '@/js/characters'
-
-// import Smoother from '@/js/smoother'
+import { Player, Food, Virus, MassFood } from '@/js/characters'
+import Smoother from '@/js/smoother'
 
 // const smootherX = new Smoother()
 // const smootherY = new Smoother()
@@ -21,6 +20,32 @@ let lvY = 0
 let mX = 0
 let mY = 0
 
+let preloadIntervalId = -1
+
+const camBoundPlayer = { min: 0.05, max: 0.85 }
+const camBoundLimit = { min: 0.65, max: 2 }
+// const camPreferredScale = 1.0
+
+const smrGuideLineOpacity = new Smoother({
+  method: 'exponential',
+  params: { alpha: 0.5 }
+})
+
+const smrCamScale = new Smoother({
+  method: 'exponential',
+  params: { alpha: 0.05 }
+})
+
+const smrCamX = new Smoother({
+  method: 'exponential',
+  params: { alpha: 1 }
+})
+
+const smrCamY = new Smoother({
+  method: 'exponential',
+  params: { alpha: 1 }
+})
+
 const deleteOp = (obj) => {
   delete obj.op
   return obj
@@ -30,6 +55,9 @@ const States = {
   idle: {
     preload () {
       this.g = this.game
+    },
+    create () {
+
     }
   },
   game: {
@@ -37,8 +65,6 @@ const States = {
       this.g = this.game
 
       this.g.stage.disableVisibilityChange = true
-
-      this.g.load.image('background', require('@/assets/img/tile.png'))
 
       this.g.$ws.on('connect', () => {
         console.log('[ws] Connected!')
@@ -59,7 +85,14 @@ const States = {
           clearInterval(this.g.$heartbeatTimer)
         }
         this.g.$heartbeatTimer = setInterval(() => {
-          if (!this.g.$overlay.isBrowserInactive()) {
+          // FIXME: temp
+          // if (!this.g.$overlay.isBrowserInactive()) {
+          //   this.g.$ws.emit('heartbeat', {
+          //     gameID: this.g.$info.gameId,
+          //     userID: this.g.$info.userId
+          //   })
+          // }
+          if (true) {
             this.g.$ws.emit('heartbeat', {
               gameID: this.g.$info.gameId,
               userID: this.g.$info.userId
@@ -94,6 +127,9 @@ const States = {
               case 3:
                 // Virus
                 this.g.addCharacter('virus', obj)
+                break
+              case 4:
+                break
             }
           })
         }
@@ -110,13 +146,7 @@ const States = {
                 switch (diff.op) {
                   case 1:
                     // add
-                    this.g.addCharacter('food', {
-                      id: diff.id,
-                      hue: diff.hue,
-                      r: diff.r,
-                      x: diff.x,
-                      y: diff.y
-                    })
+                    this.g.addCharacter('food', deleteOp(diff))
                     break
                   case -1:
                     // remove
@@ -125,14 +155,30 @@ const States = {
                 }
                 break
               case 1:
+                // Player
                 let p
                 switch (diff.op) {
                   case 1:
                     this.g.addCharacter('player', deleteOp(diff))
                     break
                   case 0:
-                    // Sync data
                     p = this.g.getCharacter('player', diff.id)
+                    if (diff.id === this.g.$info.myId) {
+                      const diffWeight = diff.weight / 50
+                      const pWeight = p.weight / 50
+                      if (diffWeight - pWeight === 1) {
+                        if (this.g.$sounds['gain'].isDecoded && this.g.$overlay.menuSettings.sfxPlay) {
+                          this.g.$sounds['gain'].restart()
+                          this.g.$sounds['gain'].play()
+                        }
+                      } else if (diffWeight - pWeight >= 5) {
+                        if (this.g.$sounds['gain'].isDecoded && this.g.$overlay.menuSettings.sfxPlay) {
+                          this.g.$sounds['gain-big'].restart()
+                          this.g.$sounds['gain-big'].play()
+                        }
+                      }
+                    }
+                    // Sync data
                     const props = Object.keys(deleteOp(diff))
                     props.forEach((prop) => {
                       p[prop] = diff[prop]
@@ -150,6 +196,10 @@ const States = {
                     if (diff.id === this.g.$info.myId) {
                       // Die logic
                       this.g.$overlay.setState('died')
+                      this.g.$sounds['bg'].stop()
+                      if (this.g.$overlay.menuSettings.sfxPlay) {
+                        this.g.$sounds['died'].play()
+                      }
                     }
                     p = this.g.removeCharacter('player', diff.id)
                     if (p) {
@@ -159,35 +209,94 @@ const States = {
                     break
                 }
                 break
+              case 3:
+                // Virus
+                switch (diff.op) {
+                  case 1:
+                    this.g.addCharacter('virus', deleteOp(diff))
+                    break
+                  case -1:
+                    this.g.removeCharacter('virus', diff.id)
+                    break
+                }
+                break
+              case 4:
+                // MassFood
+                console.log(diff)
+                switch (diff.op) {
+                  case 1:
+                    this.g.addCharacter('massFood', deleteOp(diff))
+                    break
+                  case -1:
+                    this.g.removeCharacter('massFood', diff.id)
+                    break
+                }
+                break
             }
           })
-          // delete
-          // ids.forEach((id) => {
-          //   this.g.removeCharacter('player', id)
-          // })
         }
       })
+
+      // Preload assets
+      if (!this.g.$isAssetsPreloaded) {
+        this.g.$overlay.setState('preloading')
+
+        this.g.load.onLoadStart.add(Callbacks.loadStart, this)
+        this.g.load.onLoadComplete.add(Callbacks.loadComplete, this)
+
+        this.g.load.image('background', require('@/assets/img/tile.png'))
+        this.g.load.audio('bg', require('@/assets/audio/bg.mp3'))
+        this.g.load.audio('gain', require('@/assets/audio/gain.mp3'))
+        this.g.load.audio('gain-big', require('@/assets/audio/gain-big.mp3'))
+        this.g.load.audio('split', require('@/assets/audio/split.mp3'))
+        this.g.load.audio('shrink', require('@/assets/audio/shrink.mp3'))
+        this.g.load.audio('died', require('@/assets/audio/died.mp3'))
+      }
     },
     create () {
-      this.g.scale.setResizeCallback(Callbacks.resize, this)
-      this.g.input.mouse.onMouseMove = Callbacks.mouseMove
+      // Init inputs
       this.g.input.keyboard.onUpCallback = Callbacks.keyboardUp
       this.g.input.keyboard.onDownCallback = Callbacks.keyboardDown
       this.g.input.keyboard.onPressCallback = Callbacks.keyboardPress
-
+      this.g.input.addMoveCallback(Callbacks.move, this)
       this.g.$key = {}
       this.g.$key.up = this.g.input.keyboard.addKey(Phaser.Keyboard.UP)
       this.g.$key.down = this.g.input.keyboard.addKey(Phaser.Keyboard.DOWN)
       this.g.$key.left = this.g.input.keyboard.addKey(Phaser.Keyboard.LEFT)
       this.g.$key.right = this.g.input.keyboard.addKey(Phaser.Keyboard.RIGHT)
 
-      this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
-      this.g.$sprites['background'] = this.add.tileSprite(
+      // Reset sprites
+      this.g.$sprites = {}
+      this.g.$sprites['background'] = this.g.add.tileSprite(
         0, 0, gameConfig.world.width, gameConfig.world.height,
         'background')
 
+      this.g.$sounds = {}
+      this.g.$sounds['bg'] = this.g.add.audio('bg')
+      this.g.$sounds['bg'].loop = true
+      this.g.$sounds['bg'].volume = 0.5
+      this.g.$sounds['gain'] = this.g.add.audio('gain')
+      this.g.$sounds['gain'].volume = 500
+      this.g.$sounds['gain-big'] = this.g.add.audio('gain-big')
+      this.g.$sounds['gain-big'].volume = 50
+      this.g.$sounds['split'] = this.g.add.audio('split')
+      this.g.$sounds['shrink'] = this.g.add.audio('shrink')
+      this.g.$sounds['died'] = this.g.add.audio('died')
+      const soundArray = Object.keys(this.g.$sounds).map((key) => {
+        return this.g.$sounds[key]
+      })
+      this.g.sound.setDecodedCallback(soundArray, function () {
+        if (this.g.$overlay.menuSettings.bgmPlay) {
+          this.g.$sounds['bg'].play()
+        }
+      }, this)
+
+      this.g.world.setBounds(0, 0, gameConfig.world.width, gameConfig.world.height)
       this.g.$graphics = this.g.add.graphics(0, 0)
 
+      this.g.scale.setResizeCallback(Callbacks.resize, this)
+      this.g.scale.scaleMode = Phaser.ScaleManager.SHOW_ALL
+      this.g.scale.fullScreenScaleMode = Phaser.ScaleManager.SHOW_ALL
       Callbacks.resize.call(this, this.scale)
 
       this.g.$ws.connect()
@@ -213,6 +322,8 @@ const States = {
               right: cell.x + cell.r,
               bottom: cell.y + cell.r
             }
+            playerBound.width = playerBound.right - playerBound.left
+            playerBound.height = playerBound.bottom - playerBound.top
             return
           }
           let top = cell.y - cell.r
@@ -223,8 +334,10 @@ const States = {
           playerBound.left = Math.min(playerBound.left, left)
           playerBound.right = Math.max(playerBound.right, right)
           playerBound.bottom = Math.max(playerBound.bottom, bottom)
+          playerBound.width = playerBound.right - playerBound.left
+          playerBound.height = playerBound.bottom - playerBound.top
         })
-        if (process.env.NODE_ENV === 'development') {
+        if (this.g.$debug) {
           this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
           this.game.$graphics.drawRect(playerBound.left, playerBound.top, (playerBound.right - playerBound.left), (playerBound.bottom - playerBound.top))
 
@@ -234,20 +347,79 @@ const States = {
           this.g.$graphics.lineStyle(0, 0x000000, 0)
         }
 
-        this.g.camera.x = (playerBound.right + playerBound.left - this.g.scale.width) / 2
-        this.g.camera.y = (playerBound.top + playerBound.bottom - this.g.scale.height) / 2
-        // this.g.camera.scale.setTo(2, 2)
+        // Set best scale for camera
+        const cam = this.g.camera
+        // const camPreferredScale = 2 - Math.pow(playerBound.width, 1 / 1.5) / 40
+        const camPreferredScale = 1
+        // let camPreferredScale = 2
+        let scaleX = camPreferredScale
+        let scaleY = camPreferredScale
+        let scale = camPreferredScale
+        // rule 1: Bound player
+        // Try to display with preferred scale:
+        const ppW = playerBound.width / (cam.width / camPreferredScale)
+        const ppH = playerBound.height / (cam.height / camPreferredScale)
+        if (ppW > camBoundPlayer.max) {
+          scaleX = camBoundPlayer.max * (cam.width / playerBound.width)
+        } else if (ppW < camBoundPlayer.min) {
+          scaleX = camBoundPlayer.min * (cam.width / playerBound.width)
+        }
+        if (ppH > camBoundPlayer.max) {
+          scaleY = camBoundPlayer.max * (cam.height / playerBound.height)
+        } else if (ppH < camBoundPlayer.min) {
+          scaleY = camBoundPlayer.min * (cam.height / playerBound.height)
+        }
+
+        if (scaleX >= 1 && scaleY >= 1) {
+          scale = Math.max(scaleX, scaleY)
+        } else if (scaleX < 1 && scaleY < 1) {
+          scale = Math.min(scaleX, scaleY)
+        } else {
+          scale = Math.min(scaleX, scaleY)
+        }
+
+        // rule 2: limit scale to pre-defined bounds
+        if (scale < camBoundLimit.min) {
+          scale = camBoundLimit.min
+        }
+        if (scale > camBoundLimit.max) {
+          scale = camBoundLimit.max
+        }
+
+        // rule 3: make world stretch to cover the window
+        scaleX = scaleY = scale
+        const displayW = cam.width / scale
+        const displayH = cam.height / scale
+        if (displayW > gameConfig.world.width) {
+          scaleX = cam.width / gameConfig.world.width
+        }
+        if (displayH > gameConfig.world.height) {
+          scaleY = cam.height / gameConfig.world.height
+        }
+        scale = Math.min(scaleX, scaleY)
+
+        smrCamScale.setValue(scale)
+        const smoothedScale = smrCamScale.getValue()
+        this.g.camera.scale.setTo(smoothedScale, smoothedScale)
+
+        // Center player
+        smrCamX.setValue(
+          (playerBound.right + playerBound.left) / 2 * this.g.camera.scale.x - (this.g.camera.width) / 2
+        )
+        smrCamY.setValue(
+          (playerBound.top + playerBound.bottom) / 2 * this.g.camera.scale.y - (this.g.camera.height) / 2
+        )
+
+        this.g.camera.x = Math.round(smrCamX.getValue())
+        this.g.camera.y = Math.round(smrCamY.getValue())
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (this.g.$debug) {
         const rect = this.game.getViewRect()
         this.game.$graphics.lineStyle(10, 0xd75cf6, 1)
         this.game.$graphics.drawRect(rect.left, rect.top, (rect.right - rect.left), (rect.bottom - rect.top))
         this.game.$graphics.lineStyle(0, 0x000000, 0)
       }
-
-      // this.game.camera.x = camX
-      // this.game.camera.y = camY
 
       this.g.$viewRect = this.g.getViewRect()
 
@@ -298,28 +470,6 @@ const States = {
       }
       this.g.$leaderBoardTimer++
 
-      // this.game.foodList.forEach((food) => {
-      //   this.game.drawFood(food)
-      // })
-
-      // this.game.playerList.forEach((player) => {
-      //   if (player.id === this.game.me.id) {
-      //     this.game.me = player
-      //   }
-      //   let cell = player.cells[0]
-      //   this.game.$graphics.beginFill(0xa92cc8, 1)
-      //   this.game.drawCircle(this.game.scale.width / 2, this.game.scale.height / 2, cell.radius, 40)
-      //   this.game.$graphics.endFill()
-      // })
-
-      // if (a < 200) {
-      //   a += 0.5
-      // }
-      // const player = this.game.getCharacter('player', '1')
-      // player.r = a
-      // player.position.x += Math.round(ax * 6)
-      // player.position.y += Math.round(ay * 6)
-
       // update speeds
       const delta = 0.1
       if (this.g.$key) {
@@ -351,7 +501,6 @@ const States = {
           vY = -1
         }
         if (vX !== lvX || vY !== lvY) {
-          // console.log('send!', vX, vY)
           this.g.$ws.emit('op', {
             t: 'mv',
             x: vX,
@@ -365,9 +514,10 @@ const States = {
       }
     },
     render () {
-      if (process.env.NODE_ENV === 'development') {
+      if (this.g.$debug) {
         this.game.debug.cameraInfo(this.game.camera, 32, 64)
-        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 32, 200, '#000')
+        this.game.debug.text(`Render objects number: ${this.g.$renderList.length}`, 30, 200, '#000')
+        this.game.debug.text(`Camera scale: ${this.g.camera.scale.x}`, 30, 240, '#000')
         this.game.debug.pointer(this.game.input.activePointer)
       }
     },
@@ -387,8 +537,17 @@ const States = {
       this.g.$playerList.clear()
       this.g.$foodList.clear()
       this.g.$virusList.clear()
+      this.g.$massFoodList.clear()
 
-      this.g.$sprites['background'].destroy()
+      Object.keys(this.g.$sprites).forEach((key) => {
+        this.g.$sprites[key].destroy()
+      })
+      this.g.$sprites = null
+      Object.keys(this.g.$sounds).forEach((key) => {
+        this.g.$sounds[key].destroy()
+      })
+      this.g.$sounds = null
+
       this.g.$graphics.destroy()
 
       this.g.input.keyboard.removeKey(Phaser.Keyboard.UP)
@@ -401,15 +560,57 @@ const States = {
 }
 
 const Callbacks = {
+  loadStart () {
+    preloadIntervalId = setInterval(() => {
+      this.game.$overlay.setLoadingText(`稍等，正在载入资源...${this.game.load.progress}%`)
+    }, 100)
+  },
+  loadComplete () {
+    this.g.$isAssetsPreloaded = true
+    clearInterval(preloadIntervalId)
+    this.game.load.onLoadStart.remove(Callbacks.loadStart, this)
+    this.game.load.onLoadComplete.remove(Callbacks.loadComplete, this)
+  },
   resize: throttle(function onResize (scale) {
+    const deviceRatio = window.devicePixelRatio || 1
     scale.setGameSize(
-      this.game.parent.clientWidth,
-      this.game.parent.clientHeight)
+      this.game.parent.clientWidth * deviceRatio,
+      this.game.parent.clientHeight * deviceRatio)
+    // Add this to fix input scale jetter
+    this.game.input.scale = new Phaser.Point(deviceRatio, deviceRatio)
   }, 500),
-  mouseMove (e) {
-    // Get mouse position of world
-    mX = e.clientX + this.game.camera.x
-    mY = e.clientY + this.game.camera.y
+  keyboardPress (e, f) {
+
+  },
+  keyboardDown (e) {
+    // console.log('down', e)
+    switch (e.code) {
+      case 'Space':
+        this.game.$overlay.refs.controlSplit.classList.add('active')
+        break
+      case 'KeyW':
+        this.game.$overlay.refs.controlShrink.classList.add('active')
+        break
+    }
+  },
+  keyboardUp (e) {
+    switch (e.code) {
+      case 'Space':
+        this.game.splitPlayer()
+        this.game.$overlay.refs.controlSplit.classList.remove('active')
+        break
+      case 'KeyW':
+        this.game.shrinkPlayer()
+        this.game.$overlay.refs.controlShrink.classList.remove('active')
+        break
+      // case 'KeyM':
+      //   this.game.$overlay.toggleMenu()
+    }
+  },
+  move (pointer, x, y, fromClick) {
+    // Get position of world
+    mX = (x + this.game.camera.x) / this.game.camera.scale.x
+    mY = (y + this.game.camera.y) / this.game.camera.scale.y
 
     // Get current player
     const p = this.game.getCharacter('player', this.game.$info.myId)
@@ -435,30 +636,8 @@ const Callbacks = {
         userID: this.game.$info.userId,
         gameID: this.game.$info.gameId
       })
-    }
-  },
-  keyboardPress (e, f) {
 
-  },
-  keyboardDown (e) {
-    // console.log('down', e)
-  },
-  keyboardUp (e) {
-    switch (e.code) {
-      case 'Space':
-        this.game.$ws.emit('op', {
-          t: 'space',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
-        break
-      case 'KeyW':
-        this.game.$ws.emit('op', {
-          t: 'w',
-          userID: this.game.$info.userId,
-          gameID: this.game.$info.gameId
-        })
-        break
+      smrGuideLineOpacity.setValue(1)
     }
   }
 }
@@ -476,7 +655,10 @@ class Game extends Phaser.Game {
     this.$ws = options.ws
 
     this.$viewRect = null
-    this.$sprites = {}
+    this.$sprites = null
+    this.$sounds = null
+    this.$isAssetsPreloaded = false
+    // this.$audioDecoded = false
     this.$playerList = new Map()
     this.$foodList = new Map()
     this.$virusList = new Map()
@@ -485,12 +667,32 @@ class Game extends Phaser.Game {
     this.$info = {}
     this.$heartbeatTimer = -1
     this.$leaderBoardTimer = 0
+    this.$debug = (process.env.NODE_ENV === 'development')
 
     this.state.add('game', States.game)
     this.state.add('idle', States.idle)
+
+    this.state.start('idle')
   }
   exit () {
+    return new Promise((resolve, reject) => {
+      if (this.state.current === 'game') {
+        // Exit game
+        this.$ws.on('exited', () => {
+          resolve()
+        })
 
+        this.$ws.emit('exit', {
+          userID: this.$info.myId,
+          gameID: this.$info.gameId
+        })
+      } else {
+        reject(new Error('not-in-game'))
+      }
+    }).then(() => {
+      this.state.start('idle')
+      this.$overlay.setState('gamePanel')
+    })
   }
   reborn () {
     return new Promise((resolve, reject) => {
@@ -568,6 +770,7 @@ class Game extends Phaser.Game {
       case 'player':
       case 'virus':
       case 'food':
+      case 'massFood':
         if (type === 'player') {
           list = this.$playerList
           Obj = Player
@@ -577,6 +780,9 @@ class Game extends Phaser.Game {
         } else if (type === 'food') {
           list = this.$foodList
           Obj = Food
+        } else if (type === 'massFood') {
+          list = this.$massFoodList
+          Obj = MassFood
         }
         if (list.has(option.id)) {
           console.warn('@addCharacter:', `ID ${option.id} has already exists for ${type}`)
@@ -604,6 +810,9 @@ class Game extends Phaser.Game {
       case 'virus':
         list = this.$virusList
         break
+      case 'massFood':
+        list = this.$massFoodList
+        break
       default:
         console.warn('@getCharacter', `Invalid character tyle ${type}`)
     }
@@ -625,6 +834,9 @@ class Game extends Phaser.Game {
       case 'virus':
         list = this.$virusList
         break
+      case 'massFood':
+        list = this.$massFoodList
+        break
       default:
         console.warn('@removeCharacter', `Invalid character tyle ${type}`)
     }
@@ -645,13 +857,14 @@ class Game extends Phaser.Game {
       }
     })
 
+    const sortList = []
     //
     // TODO: sorting characters
     this.$playerList.forEach((player) => {
       if (player.cells && player.cells.length) {
         player.cells.forEach((cell) => {
           if (this.isInView(cell)) {
-            this.$renderList.push(cell)
+            sortList.push(cell)
           }
 
           // FIXME: debug
@@ -671,16 +884,72 @@ class Game extends Phaser.Game {
           // FIXME:
         })
         if (this.isInView(player)) {
-          this.$renderList.push(player)
+          sortList.push(player)
         }
       }
     })
 
     this.$virusList.forEach((virus) => {
       if (this.isInView(virus)) {
-        this.$renderList.push(virus)
+        sortList.push(virus)
       }
     })
+
+    this.$massFoodList.forEach((massFood) => {
+      if (this.isInView(massFood)) {
+        sortList.push(massFood)
+      }
+    })
+
+    sortList.sort((a, b) => {
+      if (a.r && b.r) {
+        if (a.r > b.r) {
+          return 1
+        } else if (a.r < b.r) {
+          return -1
+        } else {
+          return 0
+        }
+      } else {
+        if (!a.r && b.r) {
+          return -1
+        }
+        if (!b.r && a.r) {
+          return 1
+        }
+        return 0
+      }
+    })
+
+    this.$renderList = this.$renderList.concat(sortList)
+  }
+  isFullScreen () {
+    const fse = document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+
+    return !!fse
+  }
+  enterFullScreen () {
+    if (!this.isFullScreen()) {
+      const d = document.documentElement
+      const requestFS = d.requestFullscreen ||
+        d.webkitRequestFullscreen ||
+        d.mozRequestFullScreen ||
+        d.msRequestFullscreen
+      requestFS.call(d)
+    }
+  }
+  exitFullScreen () {
+    if (this.isFullScreen()) {
+      const d = document
+      const exitFS = d.exitFullscreen ||
+        d.webkitExitFullscreen ||
+        d.mozCancelFullScreen ||
+        d.msExitFullscreen
+      exitFS.call(d)
+    }
   }
   isInView (character) {
     if (!this.$viewRect) {
@@ -705,6 +974,34 @@ class Game extends Phaser.Game {
       right: (this.camera.x + this.camera.width) / this.camera.scale.x
     }
     return rect
+  }
+  splitPlayer () {
+    const my = this.getCharacter('player', this.$info.myId)
+    if (my) {
+      if (this.$sounds['split'].isDecoded && this.$overlay.menuSettings.sfxPlay) {
+        this.$sounds['split'].restart()
+        this.$sounds['split'].play()
+      }
+      this.$ws.emit('op', {
+        t: 'space',
+        userID: this.$info.userId,
+        gameID: this.$info.gameId
+      })
+    }
+  }
+  shrinkPlayer () {
+    const my = this.getCharacter('player', this.$info.myId)
+    if (my) {
+      if (this.$sounds['shrink'].isDecoded && this.$overlay.menuSettings.sfxPlay) {
+        this.$sounds['shrink'].restart()
+        this.$sounds['shrink'].play()
+      }
+      this.$ws.emit('op', {
+        t: 'w',
+        userID: this.$info.userId,
+        gameID: this.$info.gameId
+      })
+    }
   }
 }
 

@@ -6,8 +6,9 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development node ./scripts/dev.js",
     "build": "cross-env NODE_ENV=production node --max-old-space-size=4096 ./scripts/build.js",
+    "cordova": "cross-env NODE_ENV=cordova node --max-old-space-size=4096 ./scripts/build.js",
     "server": "node ./src/server/server.js",
-    "static": "npm run build && node ./src/server/server-static.js"
+    "server-static": "node ./src/server/server-static.js"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "bluebird": "^3.5.0",
     "cors": "^2.8.4",
     "cross-env": "^5.0.5",
+    "crypto-js": "^3.1.9-1",
     "express": "^4.15.4",
     "express-session": "^1.15.5",
     "lodash": "^4.17.4",
@@ -49,6 +51,7 @@
     "babel-preset-env": "^1.6.0",
     "babel-preset-stage-2": "^6.24.1",
     "chalk": "^2.1.0",
+    "css-loader": "^0.28.7",
     "cssnano": "^3.10.0",
     "eslint": "^4.5.0",
     "eslint-config-standard": "^10.2.1",
@@ -70,7 +73,6 @@
     "postcss-loader": "^2.0.6",
     "progress-bar-webpack-plugin": "^1.10.0",
     "require-from-string": "^2.0.1",
-    "resolve-url-loader": "^2.1.0",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.18.2",
     "tinycolor2": "^1.4.1",

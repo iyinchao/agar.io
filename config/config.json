@@ -31,7 +31,7 @@
     "playerWeightToRegion": 1,
     "playerMinRadius": 15,
     "splitDistanceToRadius": 3,
-    "ejectDistanceToRadius": 2,
+    "ejectDistanceToRadius": 3,
     "maxCellCount": 16,
 
     "foodWeight": 50,
@@ -41,7 +41,7 @@
     "virusRadius": 60,
 
     "massWeight": 30,
-    "massRadius": 30,
+    "massRadius": 7,
 
     "weightXspeed": 300,
     "minPlayerSpeed": 10,

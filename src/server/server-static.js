@@ -14,6 +14,7 @@ app.get('/', function (req, res) {
 })
 
 app.use('/static', express.static(path.join(__dirname, '../../dist/client/static')))
+app.use('/android', express.static(path.join(__dirname, '../../dist/android')))
 
 app.listen(80, function () {
   console.log('Static server now running at port 80 !')

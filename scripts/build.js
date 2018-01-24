@@ -1,5 +1,3 @@
-process.env.NODE_ENV = '"production"'
-
 const path = require('path')
 const shelljs = require('shelljs')
 const webpack = require('webpack')
@@ -8,6 +6,8 @@ const baseURL = process.cwd()
 const utils = require(path.join(baseURL, 'scripts/utils'))
 const config = utils.getProjectConfig()
 const webpackConfig = require(utils.dir('config/webpack/webpack.prod.conf'))
+
+process.env.NODE_ENV = '"production"'
 
 ;(() => {
   utils.logger('info', 'Start production building... fasten your seatbelt :)')

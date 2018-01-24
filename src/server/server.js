@@ -157,7 +157,7 @@ function on_exit(req, rsp)
     return rsp.json(new ret_data(0, ""));
 }
 
-function insertNewSocketRecord(gameid, playerid, socketid, playerip)
+function insertNewSocketRecord(gameid, playerid, socketid, playerip, email)
 {
 	console.log("Inserting user");
 	var first_pos = -1;
@@ -172,7 +172,7 @@ function insertNewSocketRecord(gameid, playerid, socketid, playerip)
 	}
 	if(first_pos>=0 && first_pos<c.maxPlayers)
 	{
-		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip, timestamp:timestamp};
+		activeGames[first_pos] = {gameid:gameid, playerid:playerid, socketid:socketid, playerip:playerip, timestamp:timestamp, email:email};
 	}
 }
 
@@ -242,7 +242,7 @@ io.on('connection', function(socket){
 			}
 			if(pos === -1)
 			{
-				insertNewSocketRecord(ret_value.gameId, ret_value.playerMainId, socket.id, socket.request.connection.remoteAddress);
+				insertNewSocketRecord(ret_value.gameId, ret_value.playerMainId, socket.id, socket.request.connection.remoteAddress, player.email);
 			}
 
 			for(var i=0;i<c.maxPlayers;i++)
@@ -351,19 +351,19 @@ function cleanZombeUsers()
 		{
 			//console.log("TimeStampNow:"+timestamp);
 			//console.log("TimeStampLast:"+activeGames[i].timestamp);
-			if(timestamp - activeGames[i].timestamp >= 10)
+			if(timestamp - activeGames[i].timestamp >= 100)
 			{
 				gameID = activeGames[i].gameid;
 				playerID = activeGames[i].playerid;
 				//console.log("CleanZombe_GameID:"+gameID);
 				//console.log("CleanZombe_PlayerID:"+playerID);
 				game.Exit(activeGames[i].gameid, activeGames[i].playerid);
-				sockets[activeGames[i].socketid].emit("exited", "No player input, kick off");
+				sockets[activeGames[i].socketid].emit("exited", {reason:"heartbeat"});
 				sockets[activeGames[i].socketid].disconnect();
-				activeGames[i].gameid = -1;
-				activeGames[i].playerid = -1;
-				activeGames[i].playerip = -1;
-				activeGames[i].timestamp = -1;
+			//	activeGames[i].gameid = -1;
+			//	activeGames[i].playerid = -1;
+			//	activeGames[i].playerip = -1;
+			//	activeGames[i].timestamp = -1;
 				activeGames[i] = undefined;
 			}
 		}	
@@ -380,7 +380,8 @@ server.get("/logout", on_exit);
 server.get("/top", on_top_n);
 
 setInterval(sceneUpdate, 25);
-///////setInterval(cleanZombeUsers, 10000);
+setInterval(cleanZombeUsers, 5000);
+
 var ipaddress = '0.0.0.0';
 var serverport = '3000';
 http.listen(serverport, ipaddress, function(){

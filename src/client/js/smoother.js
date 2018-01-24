@@ -3,7 +3,7 @@ class Smoother {
     const op = Object.assign({}, {
       method: 'exponential',
       params: {
-        alpha: 0.05
+        alpha: 0.5
       }
     }, option)
     this.op = op
